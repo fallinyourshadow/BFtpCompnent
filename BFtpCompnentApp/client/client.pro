@@ -3,10 +3,15 @@ TEMPLATE = app
 QT       += core gui network
 
 include ($$PWD/../../BFtpCompnent/client/ftpClient.pri)
+HEADERS += \
+    $$PWD/dialog.h
 
 SOURCES += \
-    main.cpp
+    main.cpp \
+    $$PWD/dialog.cpp
 
+FORMS += \
+    $$PWD/dialog.ui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11

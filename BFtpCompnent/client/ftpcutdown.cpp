@@ -12,7 +12,11 @@ qint64 ftpCutDown::getFileSize()
     QEventLoop loop;
     //发出请求，获取目标地址的头部信息
     QNetworkReply *reply = manager.head(QNetworkRequest(url));
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()), Qt::DirectConnection);
+    QObject::connect(reply,
+                     &QNetworkReply::finished,
+                     &loop,
+                     &QEventLoop::quit,
+                     Qt::DirectConnection);
     loop.exec();
     QVariant var = reply->header(QNetworkRequest::ContentLengthHeader);
     reply->deleteLater();
@@ -31,7 +35,9 @@ void ftpCutDown::startDownload(qint64 start, qint64 end)
 
        //开始下载
        m_Reply = m_Qnam.get(QNetworkRequest(qheader));
-       connect(m_Reply, &QNetworkReply::finished,[this](){
+       connect(m_Reply,
+               &QNetworkReply::finished,
+               [this](){
             this->data = this->m_Reply->readAll();
            emit this->downFinish();
        });

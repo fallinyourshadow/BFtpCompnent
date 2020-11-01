@@ -53,10 +53,22 @@ Dialog::Dialog(QWidget *parent) :
     m_loginState = false;
 
     m_pFtp = new QFtp;
-    connect(m_pFtp,&QFtp::stateChanged,this,&Dialog::stateChangedSlot);
-    connect(m_pFtp,SIGNAL(listInfo(QUrlInfo)),this,SLOT(ListInfoSlot(QUrlInfo)));
-    connect(m_pFtp,SIGNAL(commandStarted(int)),this,SLOT(ftpCommandStarted(int)));
-    connect(m_pFtp,SIGNAL(commandFinished(int,bool)),this,SLOT(ftpCommandFinished(int,bool)));
+    connect(m_pFtp,
+            &QFtp::stateChanged,
+            this,
+            &Dialog::stateChangedSlot);
+    connect(m_pFtp,
+            &QFtp::listInfo,
+            this,
+            &Dialog::ListInfoSlot);
+    connect(m_pFtp,
+            &QFtp::commandStarted,
+            this,
+            &Dialog::ftpCommandStarted);
+    connect(m_pFtp,
+            &QFtp::commandFinished,
+            this,
+            &Dialog::ftpCommandFinished);
 
     ui->treeWidgetFtp->setRootIsDecorated(false);
     ui->treeWidgetFtp->setSortingEnabled(true);
@@ -71,59 +83,102 @@ Dialog::Dialog(QWidget *parent) :
     QIcon deleteIcon(":/img/ftp/stop.ico");
     //m_pActionDelete->setIcon(deleteIcon);
     m_pActionDelete->setToolTip(QStringLiteral("delete"));
-    connect(m_pActionDelete,SIGNAL(triggered()),this,SLOT(trigActionDeleteSlot()));
+    connect(m_pActionDelete,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionDeleteSlot);
 
     m_pActionDownload =new QAction(this);
     m_pActionDownload->setText(QStringLiteral("下载(&A)"));
     QIcon downloadIcon(":/img/ftp/down.ico");
     //m_pActionDownload->setIcon(downloadIcon);
-    connect(m_pActionDownload,SIGNAL(triggered()),this,SLOT(trigActionDownloadSlot()));
+    connect(m_pActionDownload,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionDownloadSlot);
 
     m_pActionOpen = new QAction(this);
     m_pActionOpen->setText(QStringLiteral("打开(&O)"));
     QIcon openIcon(":/img/ftp/open.ico");
     //m_pActionOpen->setIcon(openIcon);
-    connect(m_pActionOpen,SIGNAL(triggered()),this,SLOT(trigActionOpenSlot()));
+    connect(m_pActionOpen,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionOpenSlot);
 
     m_pActionRefresh = new QAction(this);
     m_pActionRefresh->setText(QStringLiteral("刷新(&R)"));
     QIcon refreshIcon(":/img/ftp/sync.ico");
     //m_pActionRefresh->setIcon(refreshIcon);
-    connect(m_pActionRefresh,SIGNAL(triggered()),this,SLOT(trigActionRefreshSlot()));
+    connect(m_pActionRefresh,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionRefreshSlot);
 
     m_pActionUpload = new QAction(this);
     m_pActionUpload->setText(QStringLiteral("上传(&U)"));
     QIcon uploadIcon(":/img/ftp/up.ico");
     //m_pActionUpload->setIcon(uploadIcon);
-    connect(m_pActionUpload,SIGNAL(triggered()),this,SLOT(trigActionUploadSlot()));
+    connect(m_pActionUpload,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionUploadSlot);
 
     m_pActionUploadDir = new QAction(this);
     m_pActionUploadDir->setText(QStringLiteral("上传文件夹(&Y)"));
-    connect(m_pActionUploadDir,SIGNAL(triggered()),this,SLOT(trigActionUploadDirSlot()));
+    connect(m_pActionUploadDir,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionUploadDirSlot);
 
     m_pActionRename = new QAction(this);
     m_pActionRename->setText(QStringLiteral("重命名(&M)"));
-    connect(m_pActionRename,SIGNAL(triggered()),this,SLOT(trigActionRenameSlot()));
+    connect(m_pActionRename,
+            &QAction::triggered,
+            this,
+            &Dialog::trigActionRenameSlot);
 
     m_pActionNewDir = new QAction(this);
     m_pActionNewDir->setText(QStringLiteral("新建文件夹(&N)"));
     QIcon newDirIcon(":/img/ftp/add.ico");
     //m_pActionNewDir->setIcon(newDirIcon);
 
-    connect(m_pActionNewDir,SIGNAL(triggered()),this,SLOT(triActionNewDirSlot()));
-
-    connect(ui->treeWidgetFtp,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,
-            SLOT(doubleclickItemSlot(QTreeWidgetItem*,int)));
-    connect(ui->treeWidgetFtp,SIGNAL(customContextMenuRequested(QPoint)),this,
-            SLOT(treeWdtContexMenuSlot(QPoint)));
-    connect(ui->treeWidgetFtp,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-            this,SLOT(clickItemSlot(QTreeWidgetItem*,int)));
-    connect(ui->treeWidgetFtp,SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-            this,SLOT(renameSlot(QTreeWidgetItem*,int)));
-    connect(ui->pushButtonHome,SIGNAL(clicked()),this,SLOT(homeBtnClickedSlot()));
-    connect(ui->pushButtonRefresh,SIGNAL(clicked()),this,SLOT(trigActionRefreshSlot()));
-    connect(ui->lineEditPath,SIGNAL(returnPressed()),this,SLOT(lineDdieEnterSlot()));
-    connect(ui->lineEdit,SIGNAL(textChanged(QString)),this,SLOT(lineEditFindSlot(QString)));
+    connect(m_pActionNewDir,
+            &QAction::triggered,
+            this,
+            &Dialog::triActionNewDirSlot);
+    connect(ui->treeWidgetFtp,
+            &QTreeWidget::itemDoubleClicked,
+            this,
+            &Dialog::doubleclickItemSlot);
+    connect(ui->treeWidgetFtp,
+            &QTreeWidget::customContextMenuRequested,
+            this,
+            &Dialog::treeWdtContexMenuSlot);
+    connect(ui->treeWidgetFtp,
+            &QTreeWidget::itemClicked,
+            this,
+            &Dialog::clickItemSlot);
+    connect(ui->treeWidgetFtp,
+            &QTreeWidget::itemChanged,
+            this,
+            &Dialog::renameSlot);
+    connect(ui->pushButtonHome,
+            &QPushButton::clicked,
+            this,
+            &Dialog::homeBtnClickedSlot);
+    connect(ui->pushButtonRefresh,
+            &QPushButton::clicked,
+            this,
+            &Dialog::trigActionRefreshSlot);
+    connect(ui->lineEditPath,
+            &QLineEdit::returnPressed,
+            this,
+            &Dialog::lineDdieEnterSlot);
+    connect(ui->lineEdit,
+            &QLineEdit::textChanged,
+            this,
+            &Dialog::lineEditFindSlot);
     ui->treeWidgetFtp->setColumnWidth(0, 190);
     ui->treeWidgetFtp->setColumnWidth(1, 150);
     ui->treeWidgetFtp->setColumnWidth(2, 100);
@@ -316,7 +371,7 @@ void Dialog::treeWdtContexMenuSlot(QPoint point)
 {
     renameSlot(ui->treeWidgetFtp->currentItem(),0);
     QMenu menu;
-    if ( ui->treeWidgetFtp->itemAt(point) == NULL) {
+    if ( ui->treeWidgetFtp->itemAt(point) == nullptr) {
         ui->treeWidgetFtp->clearSelection();
         ui->treeWidgetFtp->clearFocus();
         menu.addAction(m_pActionUpload);
@@ -392,7 +447,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             msgBox.setWindowTitle(QStringLiteral("错误"));
             msgBox.setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
             msgBox.setText(QStringLiteral("网络错误，连接服务器[%1]失败！")
-                               .arg(m_server));
+                           .arg(m_server));
             msgBox.setStandardButtons(QMessageBox::Yes);
             msgBox.setButtonText(QMessageBox::Yes,QStringLiteral("确定"));
             msgBox.setDetailedText(m_pFtp->errorString());
@@ -421,7 +476,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，下载[%1]失败！\n%2")
-                                     .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             return;
         }
@@ -440,7 +495,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，上传[%1]失败！\n%2")
-                                     .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             return;
         }
@@ -449,7 +504,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("完成"),
                                  QStringLiteral("上传[%1]成功！")
-                                     .arg(m_pFile->fileName()),
+                                 .arg(m_pFile->fileName()),
                                  QStringLiteral("确定"));
         }
         break;
@@ -458,7 +513,7 @@ void Dialog::ftpCommandFinished(int , bool error)
         {
             QMessageBox::warning(this,
                                  QStringLiteral("错误"), QStringLiteral("%1")
-                                     .arg(m_pFtp->errorString()),
+                                 .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
         }
         break;
@@ -468,7 +523,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，删除[%1]失败！\n%2")
-                                     .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
         }
         break;
@@ -478,7 +533,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，文件重命名失败！\n%1")
-                                     .arg(m_pFtp->errorString()),
+                                 .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             m_pFtp->list();
         }
@@ -489,7 +544,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，获取文件列表失败！\n%1")
-                                     .arg(m_pFtp->errorString()),
+                                 .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             return;
         }
@@ -515,7 +570,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，切换目录失败！\n%1")
-                                     .arg(m_pFtp->errorString()),
+                                 .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             ui->lineEditPath->setText(m_currentDir);
             return;
@@ -526,7 +581,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             m_loginState = false;
             return;
         }
-        if ( ui->treeWidgetFtp->currentItem() == NULL) {
+        if ( ui->treeWidgetFtp->currentItem() == nullptr) {
             if ( ui->lineEditPath->text().isEmpty()) {
                 m_currentDir = m_rootDir;
                 ui->lineEditPath->setText(m_currentDir);
@@ -544,11 +599,11 @@ void Dialog::ftpCommandFinished(int , bool error)
         }
         else if ( m_currentDir != m_rootDir){
             m_currentDir.append(QStringLiteral("/%0")
-                                    .arg(ui->treeWidgetFtp->currentItem()->text(0)));
+                                .arg(ui->treeWidgetFtp->currentItem()->text(0)));
         }
         else {
             m_currentDir.append(QStringLiteral("%0")
-                                    .arg(ui->treeWidgetFtp->currentItem()->text(0)));
+                                .arg(ui->treeWidgetFtp->currentItem()->text(0)));
         }
         ui->lineEditPath->setText(m_currentDir);
         break;
@@ -665,7 +720,7 @@ void Dialog::threadDoneSlot(bool flag,QProgressBar *bar)
         FTPClient *thread = dynamic_cast<FTPClient *>(QObject::sender());
         QMessageBox::critical(this,
                               QStringLiteral("错误"),
-                              thread->getMsg(),
+                              thread->getLastErrMsg(),
                               QMessageBox::Yes,
                               QMessageBox::Yes);
 
@@ -682,7 +737,7 @@ void Dialog::threadDoneSlot(bool flag,QProgressBar *bar)
 
 void Dialog::homeBtnClickedSlot()
 {
-    ui->treeWidgetFtp->setCurrentItem(NULL);
+    ui->treeWidgetFtp->setCurrentItem(nullptr);
     m_currentDir = m_rootDir;
     ui->lineEditPath->setText(m_rootDir);
     m_pFtp->cd(m_rootDir);
@@ -699,7 +754,7 @@ void Dialog::lineEditFindSlot(QString text)
 {
     if ( text.trimmed().isEmpty()) {
         ui->treeWidgetFtp->clearSelection();
-        ui->treeWidgetFtp->setCurrentItem(NULL);
+        ui->treeWidgetFtp->setCurrentItem(nullptr);
         return;
     }
     for ( int i = 0; i < ui->treeWidgetFtp->topLevelItemCount(); i++) {
@@ -761,7 +816,7 @@ void Dialog::trigActionDeleteSlot()
                                    QStringLiteral("警告"),
                                    QStringLiteral("删除后无法恢复，是否继续？"),
                                    QStringLiteral("确定"),
-                                   QStringLiteral("取消"),nullptr ,1);
+                                   QStringLiteral("取消"),nullptr,1);
     if ( ret) return;
 
     QStringList dirList;
@@ -787,9 +842,9 @@ void Dialog::trigActionDeleteSlot()
         if ( dirPath.isEmpty()) continue;
         FTPClient *thread = new FTPClient(this);
         connect(thread,
-                SIGNAL(ftpDone(bool,QProgressBar*)),
+                &FTPClient::ftpDone,
                 thread,
-                SLOT(deleteLater()));
+                &FTPClient::deleteLater);
         connect(thread,
                 &FTPClient::ftpDone,
                 this,
@@ -826,7 +881,7 @@ void Dialog::trigActionDownloadSlot()
     dirList.clear();
     fileList.clear();
     foreach (QTreeWidgetItem *item, itemList) {
-        if ( item == NULL) continue;
+        if ( item == nullptr) continue;
         if ( item->data(2,Qt::UserRole) == DIR) {
             if ( item->text(0) == "..") {
                 continue;
@@ -856,8 +911,8 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
 {
     QFile file;
     file.setFileName(QStringLiteral("%0/%1")
-                         .arg(savePath)
-                         .arg(fileName));
+                     .arg(savePath)
+                     .arg(fileName));
     if ( file.exists()) {
         int ret = QMessageBox::warning(this,
                                        QStringLiteral("警告"),
@@ -877,8 +932,8 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
         case 1:
             while (1) {
                 file.setFileName(QStringLiteral("%0/%1(%2)")
-                                     .arg(savePath).arg(baseName)
-                                     .arg(QString::number(k)));
+                                 .arg(savePath).arg(baseName)
+                                 .arg(QString::number(k)));
                 if ( !suffix.isEmpty()) {
                     file.setFileName(file.fileName() + "." + suffix);
                 }
@@ -899,11 +954,18 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
     m_progress->setToolTip(fileName);
     m_progress->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     ui->layout1->addWidget(m_progress);
-    connect(thread, SIGNAL(ftpDone(bool,QProgressBar*)), thread, SLOT(deleteLater()));
-    connect(thread,SIGNAL(dataTransferProgressSignal(qint64,qint64,QProgressBar*,QString)),
-            this,SLOT(dataTransferProgressSlot(qint64,qint64,QProgressBar*,QString)));
-    connect(thread,SIGNAL(ftpDone(bool,QProgressBar*))
-                        ,this,SLOT(threadDoneSlot(bool,QProgressBar*)));
+    connect(thread,
+            &FTPClient::ftpDone,
+            thread,
+            &FTPClient::deleteLater);
+    connect(thread,
+            &FTPClient::dataTransferProgressSignal,
+            this,
+            &Dialog::dataTransferProgressSlot);
+    connect(thread,
+            &FTPClient::ftpDone,
+            this,
+            &Dialog::threadDoneSlot);
     thread->setServer(m_server,m_username,m_password);
     thread->recvFile(file.fileName(),stringToFtp(m_currentDir),
                      stringToFtp(fileName),m_progress);
@@ -914,8 +976,8 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
 void Dialog::downloadDir(QString &savePath, QString &dirName)
 {
     QDir dir(QStringLiteral("%0/%1")
-                 .arg(savePath)
-                 .arg(dirName));
+             .arg(savePath)
+             .arg(dirName));
     if ( dir.exists()) {
         int ret = QMessageBox::warning(this,
                                        QStringLiteral("警告"),
@@ -933,8 +995,8 @@ void Dialog::downloadDir(QString &savePath, QString &dirName)
         case 1:
             while (1) {
                 dir.setPath(QStringLiteral("%0/%1(%2)")
-                                .arg(savePath).arg(dirName)
-                                .arg(QString::number(k)));
+                            .arg(savePath).arg(dirName)
+                            .arg(QString::number(k)));
                 if ( !dir.exists()) break;
                 k++;
             }
@@ -951,11 +1013,17 @@ void Dialog::downloadDir(QString &savePath, QString &dirName)
     m_progress->setToolTip(dirName);
     m_progress->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     ui->layout1->addWidget(m_progress);
-    connect(thread, SIGNAL(ftpDone(bool,QProgressBar*)), thread, SLOT(deleteLater()));
-    connect(thread,SIGNAL(dataTransferProgressSignal(qint64,qint64,QProgressBar*,QString)),
-            this,SLOT(dataTransferProgressSlot(qint64,qint64,QProgressBar*,QString)));
-    connect(thread,SIGNAL(ftpDone(bool,QProgressBar*))
-                        ,this,SLOT(threadDoneSlot(bool,QProgressBar*)));
+    connect(thread,
+            &FTPClient::ftpDone,
+            thread,
+            &FTPClient::deleteLater);
+    connect(thread,
+            &FTPClient::dataTransferProgressSignal,
+            this,
+            &Dialog::dataTransferProgressSlot);
+    connect(thread,
+            &FTPClient::ftpDone,this,
+            &Dialog::threadDoneSlot);
     thread->setServer(m_server,m_username,m_password);
     thread->recvDir(dir.path(),stringToFtp(m_currentDir),
                     stringToFtp(dirName),m_progress);
@@ -1026,14 +1094,14 @@ void Dialog::uploadFile(QStringList &fileList)
             QTreeWidgetItem *item = ui->treeWidgetFtp->topLevelItem(i);
             if ( item->text(0) == "..") continue;
             if ( item->data(2,Qt::UserRole) == OTHER &&
-                item->text(0) == fileInfo.fileName()) {
+                 item->text(0) == fileInfo.fileName()) {
                 int ret =QMessageBox::warning(this,
-                                               QStringLiteral("警告"),
-                                               QString(QStringLiteral("文件[%0]已存在！\n（建议：重命名文件后上传）"))
-                                                   .arg(fileInfo.fileName()),
-                                               QStringLiteral("取消"),
-                                               QStringLiteral("覆盖")
-                                               );
+                                              QStringLiteral("警告"),
+                                              QString(QStringLiteral("文件[%0]已存在！\n（建议：重命名文件后上传）"))
+                                              .arg(fileInfo.fileName()),
+                                              QStringLiteral("取消"),
+                                              QStringLiteral("覆盖")
+                                              );
 
                 if ( !ret) {
                     ok = true;
@@ -1056,11 +1124,18 @@ void Dialog::uploadFile(QStringList &fileList)
         m_progress->setToolTip(fileInfo.fileName());
         m_progress->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
         ui->layout1->addWidget(m_progress);
-        connect(thread, SIGNAL(ftpDone(bool,QProgressBar*)), thread, SLOT(deleteLater()));
-        connect(thread,SIGNAL(dataTransferProgressSignal(qint64,qint64,QProgressBar*,QString)),
-                this,SLOT(dataTransferProgressSlot(qint64,qint64,QProgressBar*,QString)));
-        connect(thread,SIGNAL(ftpDone(bool,QProgressBar*)),
-                this,SLOT(threadDoneSlot(bool,QProgressBar*)));
+        connect(thread,
+                &FTPClient::ftpDone,
+                thread,
+                &FTPClient::deleteLater);
+        connect(thread,
+                &FTPClient::dataTransferProgressSignal,
+                this,
+                &Dialog::dataTransferProgressSlot);
+        connect(thread,
+                &FTPClient::ftpDone,
+                this,
+                &Dialog::threadDoneSlot);
         thread->setServer(m_server,m_username,m_password);
         QString fileName = fileInfo.fileName();
         thread->sendFile(filePath,stringToFtp(m_currentDir),
@@ -1088,12 +1163,12 @@ void Dialog::uploadDir(QString &dirPath)
         QTreeWidgetItem *item = ui->treeWidgetFtp->topLevelItem(i);
         if ( item->text(0) == "..") continue;
         if ( item->data(2,Qt::UserRole) == DIR &&
-            item->text(0) == dir.dirName()) {
+             item->text(0) == dir.dirName()) {
 
             QMessageBox::warning(this,
                                  QStringLiteral("警告"),
                                  QString(QStringLiteral("文件夹[%0]已存在！\n（建议：重命名文件夹后上传）"))
-                                     .arg(dir.dirName()),
+                                 .arg(dir.dirName()),
                                  QStringLiteral("确定"));
             return;
         }
@@ -1105,11 +1180,18 @@ void Dialog::uploadDir(QString &dirPath)
     m_progress->setToolTip(dir.dirName());
     m_progress->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     ui->layout1->addWidget(m_progress);
-    connect(thread, SIGNAL(ftpDone(bool,QProgressBar*)), thread, SLOT(deleteLater()));
-    connect(thread,SIGNAL(dataTransferProgressSignal(qint64,qint64,QProgressBar*,QString)),
-            this,SLOT(dataTransferProgressSlot(qint64,qint64,QProgressBar*,QString)));
-    connect(thread,SIGNAL(ftpDone(bool,QProgressBar*)),
-            this,SLOT(threadDoneSlot(bool,QProgressBar*)));
+    connect(thread,
+            &FTPClient::ftpDone,
+            thread,
+            &FTPClient::deleteLater);
+    connect(thread,
+            &FTPClient::dataTransferProgressSignal,
+            this,
+            &Dialog::dataTransferProgressSlot);
+    connect(thread,
+            &FTPClient::ftpDone,
+            this,
+            &Dialog::threadDoneSlot);
     thread->setServer(m_server,m_username,m_password);
     thread->sendDir(dirPath.left(dirPath.lastIndexOf("/") + 1),m_currentDir,dirPath,m_progress);
     m_threadNumber++;
@@ -1125,12 +1207,12 @@ void Dialog::trigActionRenameSlot()
 
 void Dialog::renameSlot(QTreeWidgetItem *item, int)
 {
-    if ( m_oldItem == NULL || item != m_oldItem) {
-        m_oldItem = NULL;
+    if ( m_oldItem == nullptr|| item != m_oldItem) {
+        m_oldItem = nullptr;
         return;
     }
     if ( m_oldName == item->text(0)) {
-        m_oldItem = NULL;
+        m_oldItem = nullptr;
         return;
     }
     if ( m_pFtp->state() == QFtp::Unconnected) {
@@ -1143,7 +1225,7 @@ void Dialog::renameSlot(QTreeWidgetItem *item, int)
                              QStringLiteral("文件名不能以空格开始且不能包含下列字符：\n \\ / : * ? \" < > |"),
                              QStringLiteral("确定"));
         m_oldItem->setText(0,m_oldName);
-        m_oldItem = NULL;
+        m_oldItem = nullptr;
         m_oldName.clear();
         return;
     }
@@ -1153,15 +1235,15 @@ void Dialog::renameSlot(QTreeWidgetItem *item, int)
     m_pFtp->rename(oldNmae,
                    newName);
     m_oldName.clear();
-    m_oldItem = NULL;
+    m_oldItem = nullptr;
 }
 
 void Dialog::clickItemSlot(QTreeWidgetItem *item, int i)
 {
-    static QTreeWidgetItem *lastItem = NULL;
+    static QTreeWidgetItem *lastItem = nullptr;
     if ( 0 == i) {
-        if ( item == lastItem && lastItem != NULL && item->text(0) != "..") {
-            lastItem = NULL;
+        if ( item == lastItem && lastItem != nullptr&& item->text(0) != "..") {
+            lastItem = nullptr;
             m_oldName = ui->treeWidgetFtp->currentItem()->text(0);
             m_oldItem = ui->treeWidgetFtp->currentItem();
             ui->treeWidgetFtp->editItem(ui->treeWidgetFtp->currentItem(),0);

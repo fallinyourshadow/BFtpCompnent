@@ -9,6 +9,16 @@
 #include <QVector>
 
 class QProgressBar;
+//enum{
+//    NONE,
+//    LOGIN,
+//    PUT,
+//    PUTDIR,
+//    GET,
+//    GETDIR,
+//    DELETEDIR,
+//    DELETEWAIT
+//};
 class FTPClient : public QObject
 {
     Q_OBJECT
@@ -16,13 +26,20 @@ public:
     explicit FTPClient(QObject *parent = nullptr);
     ~FTPClient();
 
+    //PUT
     void sendFile(QString filepath, QString objfilepath, QString objfileName,QProgressBar *p);
+    //PUTDIR
     void sendDir(QString filepath, QString objfilepath, QString objfileName,QProgressBar *p);
+    //GET
     void recvFile(QString filepath, QString objfilepath, QString objfileName,QProgressBar *p);
+    //GETDIR
     void recvDir(QString filepath, QString objfilepath, QString objfileName,QProgressBar *p);
+    //DELETEDIR
     void rmDir(QString objfilepath, QString objfileName);
+
     void setServer(QString server, const QString user , const QString password);
-    QString getMsg() { return m_errMsg;}
+
+    QString getLastErrMsg() { return m_lastErrMsg;}
 signals:
     void ftpDone(bool error,QProgressBar *);
     void dataTransferProgressSignal(qint64,qint64,QProgressBar *,QString);
@@ -55,11 +72,11 @@ private:
     bool m_getFlag;
     int m_getNum;
 
-    int currentState;
+    int m_currentState;
     int m_runState;
-    QString m_errMsg;
+    QString m_lastErrMsg;
     QMutex m_mutex;
-    QStringList m_taskList;
+    QStringList m_taskNameList;
     QVector<QFile *> m_fileVector;
 
     void getFile(QString filePath, QString objPath, QString objName);

@@ -2,7 +2,7 @@
 #include <QDebug>
 #include "ftpserver.h"
 #include "CFtpServer.h"
-
+#include "../runtimeconfig.h"
 #define FTPSERVER_DEBUG
 
 FtpServer::FtpServer()
@@ -28,16 +28,18 @@ bool FtpServer::init(unsigned short port)
     m_pFtpServer->SetNoTransferTimeout( 90 ); // seconds
     m_pFtpServer->SetDataPortRange( 100, 900 ); // data TCP-Port range = [100-999]
 
-    int iPort = port;
+    unsigned short iPort = port;
 
     unsigned long ulLocalInterface = INADDR_ANY;
 
-    if(!m_pFtpServer->StartListening(ulLocalInterface, (unsigned short)iPort))
+    if(!m_pFtpServer->StartListening(ulLocalInterface, iPort))
     {
+        qDebug() << 1 << iPort;
         return false;
     }
     if(!m_pFtpServer->StartAccepting())
     {
+        qDebug() << 2;
         return false;
     }
     return true;

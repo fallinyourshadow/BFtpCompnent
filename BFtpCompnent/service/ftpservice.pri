@@ -1,6 +1,3 @@
-FORMS += \
-    $$PWD/dialog.ui
-
 HEADERS += \
     $$PWD/../runtimeconfig.h \
     $$PWD/CFtpServer.h \
