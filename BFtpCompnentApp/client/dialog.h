@@ -57,7 +57,9 @@ private:
     QString m_rootDir;
     QString m_currentDir;
     bool m_loginState;
-    QFile *m_pFile;
+    //begin
+    //QFile *m_pFile;
+    //end
     QString m_oldName;
     QTreeWidgetItem *m_oldItem;
 
@@ -105,6 +107,8 @@ protected:
 
 signals:
     void sendState(const QString &);
+    void setServer(QString server, const QString user, const QString password);
+    void sendDir(QString filepath, QString objfilepath, QString objfileName, QProgressBar *p);
 };
 
 #endif // DIALOG_H

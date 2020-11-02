@@ -6,6 +6,8 @@
 #include <QIODevice>
 #include <QDir>
 #include <QTextCodec>
+#include <QProgressBar>
+#include <Windows.h>
 
 FTPClient::FTPClient(QObject *parent)
 {
@@ -17,28 +19,21 @@ FTPClient::FTPClient(QObject *parent)
     m_getFlag = true;
     m_getNum = 0;
     m_lastErrMsg.clear();
-
-    connect(&ftp,
-            &QFtp::done,
-            this,
-            &FTPClient::slotDone);
-
-    connect(&ftp,
-            &QFtp::dataTransferProgress,//数据传输处理，应该可以获得文件的传输进度
-            this,
-            &FTPClient::ftpProgressSlot);
-
-    connect(&ftp,
-            &QFtp::listInfo,
-            this,
-            &FTPClient::ListInfoSlot);
+    //begin
+    m_pFtp = nullptr;
+    //end
 }
 
 FTPClient::~FTPClient()
 {
-    ftp.disconnect();
-    ftp.close();
-    if ( m_mutex.tryLock())
+    //begin
+    login();
+    //end
+
+    m_pFtp->disconnect();
+    m_pFtp->close();
+
+    if (m_mutex.tryLock())
     {
         m_mutex.unlock();
     }
@@ -50,26 +45,32 @@ void FTPClient::sendFile(QString filepath, QString objfilepath, QString objfileN
     m_objpath = objfilepath;
     m_objName = objfileName;
     m_pBar = p;
-    ftp.connectToHost(m_server, FTP_PROT);
-    ftp.login(m_username, m_password);
+    //begin
+    login();
+    //m_pFtp->connectToHost(m_server, FTP_PROT);
+    //m_pFtp->login(m_username, m_password);
+    //end
     m_currentState = PUT;
     m_runState = PUT;
     this->putFile(m_filepath, m_objpath, m_objName);//上传文件
 }
 
-void FTPClient::sendDir(QString filepath, QString objfilepath, QString objfileName, QProgressBar *p)
+void FTPClient::sendDirSlot(QString filepath, QString objfilepath, QString objfileName, QProgressBar *p)
 {
     m_filepath = filepath;
     m_objpath = objfilepath;
     m_objName = objfileName;
     m_pBar = p;
-    ftp.connectToHost(m_server, FTP_PROT);
-    ftp.login(m_username, m_password);
+    //begin
+    login();
+    //m_pFtp->connectToHost(m_server, FTP_PROT);
+    //m_pFtp->login(m_username, m_password);
+    //end
+    qDebug() << __FILE__ << __LINE__ << "Connected";
 
     m_currentState = PUTDIR;
     m_runState = PUTDIR;
-
-    putDir(m_filepath,m_objName);
+    putDir(m_filepath, m_objName);
 }
 
 void FTPClient::recvFile(QString filepath, QString objfilepath,QString objfileName,QProgressBar *p)
@@ -78,8 +79,12 @@ void FTPClient::recvFile(QString filepath, QString objfilepath,QString objfileNa
     m_objpath = objfilepath;
     m_objName = objfileName;
     m_pBar = p;
-    ftp.connectToHost(m_server, FTP_PROT);
-    ftp.login(m_username, m_password);
+    //begin
+    login();
+//    m_pFtp->connectToHost(m_server, FTP_PROT);
+//    m_pFtp->login(m_username, m_password);
+    //end
+
     m_currentState = GET;
     m_runState = GET;
     this->getFile(m_filepath,m_objpath,m_objName);
@@ -90,8 +95,11 @@ void FTPClient::recvDir(QString dirpath, QString objfilepath, QString objfileNam
     m_filepath = dirpath;
     m_objpath = objfilepath;
     m_objName = objfileName;
-    ftp.connectToHost(m_server, FTP_PROT);
-    ftp.login(m_username, m_password);
+    //begin
+    login();
+//    tmepFtp->connectToHost(m_server, FTP_PROT);
+//    tmepFtp->login(m_username, m_password);
+    //end
     this->getDir(dirpath,m_objpath,objfileName);
     m_pBar = p;
     m_currentState = GETDIR;
@@ -104,12 +112,15 @@ void FTPClient::rmDir(QString objfilepath, QString objfileName)
     m_objName = objfileName;
     m_currentState = DELETEDIR;
     m_runState = DELETEDIR;
-    ftp.connectToHost(m_server, FTP_PROT);
-    ftp.login(m_username, m_password);
+    //begin
+    login();
+    //    m_pFtp->connectToHost(m_server, FTP_PROT);
+    //    m_pFtp->login(m_username, m_password);
+    //end
     this->deleteDir(objfilepath,objfileName);//删除这个目录中的文件
 }
 
-void FTPClient::setServer(QString server, const QString user, const QString password)
+void FTPClient::setServerSlot(QString server, const QString user, const QString password)
 {
     m_server = server;
     m_username = user;
@@ -120,35 +131,55 @@ void FTPClient::slotDone(bool error)
 {
     if(error)
     {
-        if(QFtp::Connected == ftp.state())//如果处于连接状态
+        //begin
+        login();
+        //end
+        if(QFtp::Connected == m_pFtp->state())//如果处于连接状态
         {
-            ftp.disconnect();//断开连接
-            ftp.close();//关闭
+            m_pFtp->disconnect();//断开连接
+            m_pFtp->close();//关闭
         }
-        m_lastErrMsg = ftp.errorString();//设置最后一次错误
-        emit ftpDone(false, m_pBar);//
+        qDebug() << __FILE__ << __LINE__ << "error";
+        m_lastErrMsg = m_pFtp->errorString();//设置最后一次错误
+        emit ftpDone(false, m_pBar);
         return;
     }
 
     switch (m_currentState) {
     case PUT:
+    {
+        qDebug() << __FILE__ << __LINE__ << "PUT";
+        emit ftpDone(true, m_pBar);
+        break;
+    }
     case GET:
     {
+        qDebug() << __FILE__ << __LINE__ << "GET";
         m_currentState = NONE;
+        //begin
         emit ftpDone(m_lastErrMsg.isEmpty(), m_pBar);
-//        if ( m_lastErrMsg.isEmpty()) {
+//        if ( m_lastErrMsg.isEmpty())
+//        {
 //            emit ftpDone(true, m_pBar);
 //        }
-//        else {
+//        else
+//        {
 //            emit ftpDone(false, m_pBar);
 //        }
+        //end
         break;
     }
     case PUTDIR:
+    {
+        qDebug() << __FILE__ << __LINE__ << "PUTDIR";
         m_currentState = NONE;
         emit ftpDone(true, m_pBar);
         break;
+    }
+
     case GETDIR:
+    {
+        qDebug() << __FILE__ << __LINE__ << "GETDIR";
         m_mutex.lock();
         if ( m_getFlag && m_getNum == 0)
         {
@@ -162,11 +193,17 @@ void FTPClient::slotDone(bool error)
         }
         m_mutex.unlock();
         break;
+    }
     case DELETEDIR:
+    {
+        qDebug() << __FILE__ << __LINE__ << "DELETEDIR";
         m_mutex.lock();
-        if ( m_getFlag && m_getNum == 0) {
-            ftp.cd(m_objpath);
-            ftp.rmdir(m_objName);
+        //begin
+        login();
+        //end
+        if (m_getFlag && m_getNum == 0) {
+            m_pFtp->cd(m_objpath);
+            m_pFtp->rmdir(m_objName);
             m_currentState = DELETEWAIT;
         }
         else {
@@ -174,14 +211,19 @@ void FTPClient::slotDone(bool error)
         }
         m_mutex.unlock();
         break;
+    }
     case DELETEWAIT:
+    {
+        qDebug() << __FILE__ << __LINE__ << "DELETEWAIT";
         m_currentState = NONE;
         emit getDoneSignal();
         emit ftpDone(true, nullptr);
         break;
+    }
     default:
         break;
     }
+
 }
 
 void FTPClient::ftpProgressSlot(qint64 sum, qint64 size)
@@ -223,7 +265,7 @@ void FTPClient::ListInfoSlot(const QUrlInfo &info)
             m_mutex.unlock();
 
             FTPClient *client = new FTPClient(this);
-            client->setServer(m_server,m_username,m_password);
+            client->setServerSlot(m_server,m_username,m_password);
             connect(client,
                     &FTPClient::getDoneSignal,
                     this,
@@ -244,7 +286,10 @@ void FTPClient::ListInfoSlot(const QUrlInfo &info)
         }
         else//如果是普通文件
         {
-            ftp.remove(info.name());//删除
+            //begin
+            login();
+            //end
+            m_pFtp->remove(info.name());//删除
         }
 
         return;
@@ -258,7 +303,7 @@ void FTPClient::ListInfoSlot(const QUrlInfo &info)
         m_getNum++;
         m_mutex.unlock();
         FTPClient *client = new FTPClient(this);
-        client->setServer(m_server,m_username,m_password);
+        client->setServerSlot(m_server,m_username,m_password);
         connect(client,
                 &FTPClient::dataTransferProgressSignal,
                 this,
@@ -288,9 +333,12 @@ void FTPClient::getDoneSlot()
     {
         if ( m_currentState == DELETEDIR)
         {
+            //begin
+            login();
+            //end
             m_currentState = DELETEWAIT;
-            ftp.cd(m_objpath);
-            ftp.rmdir(m_objName);
+            m_pFtp->cd(m_objpath);
+            m_pFtp->rmdir(m_objName);
             return;
         }
         m_currentState = NONE;
@@ -300,8 +348,16 @@ void FTPClient::getDoneSlot()
     else {
         m_mutex.lock();
         m_getFlag = true;
+        //begin
+        QThread * currentThread = QThread::currentThread();
+        currentThread->requestInterruption();
+        currentThread->wait(100);
+        currentThread->quit();
+        currentThread->deleteLater();
+        //end
         m_mutex.unlock();
     }
+
 }
 
 void FTPClient::getFile(QString filePath,QString objPath,QString objName)
@@ -313,8 +369,12 @@ void FTPClient::getFile(QString filePath,QString objPath,QString objName)
         m_lastErrMsg = "Create file " + filePath + " failed.";
         return;
     }
-    ftp.cd(objPath);
-    ftp.get(objName,file);
+    //begin
+    login();
+    //end
+
+    m_pFtp->cd(objPath);
+    m_pFtp->get(objName,file);
     m_taskNameList.append(file->fileName());
     m_fileVector.append(file);
 }
@@ -322,19 +382,27 @@ void FTPClient::getFile(QString filePath,QString objPath,QString objName)
 void FTPClient::putFile(QString filePath, QString objPath, QString objName)
 {
     QFile *file = new QFile(this);
-    file->setFileName(filePath);//打开这个
+    file->setFileName(filePath);//打开这个文件
+    //begin
+    login();
+    //end
     if(!file->open(QIODevice::ReadOnly))//打开失败
     {
-        ftp.disconnect();
-        ftp.close();
+        m_pFtp->disconnect();
+        m_pFtp->close();
         m_lastErrMsg = "Open file " + filePath + " failed.";
         return;
     }
-    ftp.cd(objPath);//移动到该文件所在目录，可能是为了防止文件名过长
-    ftp.put(file, objName);//上传当前目录中的该文件
+
+    qDebug() << "out" << objName;
+    m_pFtp->setTransferMode(QFtp::Passive);
+
+    m_pFtp->cd(objPath.toUtf8());//移动到该文件所在目录，可能是为了防止文件名过长
+    m_pFtp->put(file, objName, QFtp::Binary);//上传当前目录中的该文件
 
     m_taskNameList.append(file->fileName());//保存文件名
-    m_fileVector.append(file);//保存文件的地址
+    m_fileVector.append(file);//保存文件的地址,收到done信号后关闭
+    //Sleep(1);
 }
 
 void FTPClient::getDir(QString dirPath, QString objPath, QString objName)
@@ -350,31 +418,39 @@ void FTPClient::getDir(QString dirPath, QString objPath, QString objName)
     {
         m_objpath = objPath + "/" + objName;
     }
-    ftp.cd(m_objpath);//移动到该路径下
-    ftp.list();//返回当前路径下的所有项目
+    //begin
+    login();
+    //end
+    m_pFtp->cd(m_objpath);//移动到该路径下
+    m_pFtp->list();//返回当前路径下的所有项目
 }
 
 void FTPClient::putDir(QString rootPath, QString currpath)
 {
     QDir dir(currpath);
-    if ( !dir.exists())
+    if (!dir.exists())
     {
         return;
     }
     else
     {
-        ftp.cd(stringToFtp(m_objpath));
-        ftp.mkdir(stringToFtp(currpath.split(rootPath).last()));
+        //begin
+        login();
+        //end
+        m_pFtp->cd(stringToFtp(m_objpath));
+        m_pFtp->mkdir(stringToFtp(currpath.split(rootPath).last()));
     }
 
     dir.setFilter(QDir::Dirs | QDir::Files);
-    dir.setSorting(QDir::DirsLast);
+    dir.setSorting(QDir::DirsFirst);
     QFileInfoList list = dir.entryInfoList();
-
     foreach (QFileInfo info, list) {
         if ( info.isDir()) {
-            if(info.fileName()=="." || info.fileName() == "..") continue;
-            putDir(rootPath,info.absoluteFilePath());
+            if(info.fileName()=="." || info.fileName() == "..")
+                continue;
+           // qDebug() << "output:" << info.absoluteFilePath();
+
+            putDir(rootPath,info.absoluteFilePath());//递归
         }
         else {
             QString path = info.absoluteFilePath();
@@ -383,6 +459,7 @@ void FTPClient::putDir(QString rootPath, QString currpath)
                 ftpPath = m_objpath + currpath.split(rootPath).last();
             }
             QString fileName = info.fileName();
+            //qDebug() << "output:" << info.fileName();
             putFile(path,stringToFtp(ftpPath),stringToFtp(fileName));
         }
     }
@@ -391,9 +468,37 @@ void FTPClient::putDir(QString rootPath, QString currpath)
 void FTPClient::deleteDir(QString objfilepath, QString objfileName)
 {
     Q_UNUSED(objfilepath)
-    ftp.cd(m_objpath);
-    ftp.cd(objfileName);
-    ftp.list();
+    //begin
+    login();
+    //end
+    m_pFtp->cd(m_objpath);
+    m_pFtp->cd(objfileName);
+    m_pFtp->list();
+}
+
+bool FTPClient::login()
+{
+    if(m_pFtp != nullptr)//如果已经创建
+        return false;
+    m_pFtp = new QFtp(this);
+
+    m_pFtp->connectToHost(m_server, FTP_PROT);
+    m_pFtp->login(m_username, m_password);
+
+
+    connect(m_pFtp,
+            &QFtp::done,
+            this,
+            &FTPClient::slotDone);
+    connect(m_pFtp,
+            &QFtp::dataTransferProgress,//数据传输处理，应该可以获得文件的传输进度
+            this,
+            &FTPClient::ftpProgressSlot);
+    connect(m_pFtp,
+            &QFtp::listInfo,
+            this,
+            &FTPClient::ListInfoSlot);
+    return true;
 }
 
 QString FTPClient::ftpToString(QString &input)

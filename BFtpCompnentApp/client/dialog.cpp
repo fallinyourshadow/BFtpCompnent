@@ -447,7 +447,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             msgBox.setWindowTitle(QStringLiteral("错误"));
             msgBox.setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
             msgBox.setText(QStringLiteral("网络错误，连接服务器[%1]失败！")
-                           .arg(m_server));
+                               .arg(m_server));
             msgBox.setStandardButtons(QMessageBox::Yes);
             msgBox.setButtonText(QMessageBox::Yes,QStringLiteral("确定"));
             msgBox.setDetailedText(m_pFtp->errorString());
@@ -473,11 +473,15 @@ void Dialog::ftpCommandFinished(int , bool error)
     case QFtp::Get:
         if (error)
         {
-            QMessageBox::warning(this,
-                                 QStringLiteral("错误"),
-                                 QStringLiteral("网络错误，下载[%1]失败！\n%2")
-                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
-                                 QStringLiteral("确定"));
+//            QMessageBox::warning(this,
+//                                 QStringLiteral("错误"),
+//                                 QStringLiteral("网络错误，下载[%1]失败！\n%2")
+//                                     .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+//                                 QStringLiteral("确定"));
+QMessageBox::warning(this,
+                     QStringLiteral("完成"),
+                     QStringLiteral("网络错误，上传失败！\n"),
+                     QStringLiteral("确定"));
             return;
         }
         else
@@ -492,19 +496,27 @@ void Dialog::ftpCommandFinished(int , bool error)
     case QFtp::Put:
         if (error)
         {
+            //            QMessageBox::warning(this,
+            //                                 QStringLiteral("错误"),
+            //                                 QStringLiteral("网络错误，上传[%1]失败！\n%2")
+            //                                     .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+            //                                 QStringLiteral("确定"));
             QMessageBox::warning(this,
-                                 QStringLiteral("错误"),
-                                 QStringLiteral("网络错误，上传[%1]失败！\n%2")
-                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+                                 QStringLiteral("完成"),
+                                 QStringLiteral("网络错误，上传失败！\n"),
                                  QStringLiteral("确定"));
             return;
         }
         else
         {
+            //            QMessageBox::warning(this,
+            //                                 QStringLiteral("完成"),
+            //                                 QStringLiteral("上传[%1]成功！")
+            //                                     .arg(m_pFile->fileName()),
+            //                                 QStringLiteral("确定"));
             QMessageBox::warning(this,
                                  QStringLiteral("完成"),
-                                 QStringLiteral("上传[%1]成功！")
-                                 .arg(m_pFile->fileName()),
+                                 QStringLiteral("上传成功！\n"),
                                  QStringLiteral("确定"));
         }
         break;
@@ -513,17 +525,22 @@ void Dialog::ftpCommandFinished(int , bool error)
         {
             QMessageBox::warning(this,
                                  QStringLiteral("错误"), QStringLiteral("%1")
-                                 .arg(m_pFtp->errorString()),
+                                     .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
+
         }
         break;
     case QFtp::Remove:
         if (error)
         {
+            //            QMessageBox::warning(this,
+            //                                 QStringLiteral("错误"),
+            //                                 QStringLiteral("网络错误，删除[%1]失败！\n%2")
+            //                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+            //                                 QStringLiteral("确定"));
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
-                                 QStringLiteral("网络错误，删除[%1]失败！\n%2")
-                                 .arg(m_pFile->fileName()).arg(m_pFtp->errorString()),
+                                 QStringLiteral("网络错误，删除失败！\n"),
                                  QStringLiteral("确定"));
         }
         break;
@@ -533,7 +550,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，文件重命名失败！\n%1")
-                                 .arg(m_pFtp->errorString()),
+                                     .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             m_pFtp->list();
         }
@@ -544,7 +561,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，获取文件列表失败！\n%1")
-                                 .arg(m_pFtp->errorString()),
+                                     .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             return;
         }
@@ -570,7 +587,7 @@ void Dialog::ftpCommandFinished(int , bool error)
             QMessageBox::warning(this,
                                  QStringLiteral("错误"),
                                  QStringLiteral("网络错误，切换目录失败！\n%1")
-                                 .arg(m_pFtp->errorString()),
+                                     .arg(m_pFtp->errorString()),
                                  QStringLiteral("确定"));
             ui->lineEditPath->setText(m_currentDir);
             return;
@@ -599,11 +616,11 @@ void Dialog::ftpCommandFinished(int , bool error)
         }
         else if ( m_currentDir != m_rootDir){
             m_currentDir.append(QStringLiteral("/%0")
-                                .arg(ui->treeWidgetFtp->currentItem()->text(0)));
+                                    .arg(ui->treeWidgetFtp->currentItem()->text(0)));
         }
         else {
             m_currentDir.append(QStringLiteral("%0")
-                                .arg(ui->treeWidgetFtp->currentItem()->text(0)));
+                                    .arg(ui->treeWidgetFtp->currentItem()->text(0)));
         }
         ui->lineEditPath->setText(m_currentDir);
         break;
@@ -713,8 +730,16 @@ void Dialog::threadDoneSlot(bool flag,QProgressBar *bar)
     m_threadNumber--;
     m_threadMutex.unlock();
     ui->layout1->removeWidget(bar);
-    delete bar;
-    bar = nullptr;
+    //begin
+    if(nullptr != bar)
+    {
+        bar->deleteLater();
+        //bar = nullptr;
+    }
+    //    delete bar;
+    //    bar = nullptr;
+    //end
+
 
     if ( !flag ) {
         FTPClient *thread = dynamic_cast<FTPClient *>(QObject::sender());
@@ -723,6 +748,7 @@ void Dialog::threadDoneSlot(bool flag,QProgressBar *bar)
                               thread->getLastErrMsg(),
                               QMessageBox::Yes,
                               QMessageBox::Yes);
+        qDebug() << __FILE__ << __LINE__ << QString::fromLocal8Bit("error") ;
 
     }
     if ( 0 == m_threadNumber) {
@@ -800,8 +826,8 @@ void Dialog::trigActionDeleteSlot()
     if ( m_pFtp->state() == QFtp::Unconnected) {
         this->connectToFtp();
     }
-
-    if (m_pFtp->state() != QFtp::Login) {//可能是LoggedIn
+    if (m_pFtp->state() != QFtp::LoggedIn) {
+        //if (m_pFtp->state() != QFtp::Login) {//疑似写错
         QMessageBox::critical(this,
                               QStringLiteral("错误"),
                               QStringLiteral("与服务器连接异常!"),
@@ -849,7 +875,7 @@ void Dialog::trigActionDeleteSlot()
                 &FTPClient::ftpDone,
                 this,
                 &Dialog::threadDoneSlot);
-        thread->setServer(m_server,m_username,m_password);
+        thread->setServerSlot(m_server,m_username,m_password);
         thread->rmDir(stringToFtp(m_currentDir),
                       stringToFtp(dirPath));
     }
@@ -861,10 +887,11 @@ void Dialog::trigActionDeleteSlot()
 
 void Dialog::trigActionDownloadSlot()
 {
-    if ( m_pFtp->state() == QFtp::Unconnected) {
+    if (m_pFtp->state() == QFtp::Unconnected) {
         this->connectToFtp();
     }
-    if (m_pFtp->state() != QFtp::Login) {//可能是LoggedIn
+    if (m_pFtp->state() != QFtp::LoggedIn) {
+        //if (m_pFtp->state() != QFtp::Login) {//疑似写错
         QMessageBox::critical(this,
                               QStringLiteral("错误"),
                               QStringLiteral("与服务器连接异常!"),
@@ -911,8 +938,8 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
 {
     QFile file;
     file.setFileName(QStringLiteral("%0/%1")
-                     .arg(savePath)
-                     .arg(fileName));
+                         .arg(savePath)
+                         .arg(fileName));
     if ( file.exists()) {
         int ret = QMessageBox::warning(this,
                                        QStringLiteral("警告"),
@@ -932,8 +959,8 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
         case 1:
             while (1) {
                 file.setFileName(QStringLiteral("%0/%1(%2)")
-                                 .arg(savePath).arg(baseName)
-                                 .arg(QString::number(k)));
+                                     .arg(savePath).arg(baseName)
+                                     .arg(QString::number(k)));
                 if ( !suffix.isEmpty()) {
                     file.setFileName(file.fileName() + "." + suffix);
                 }
@@ -966,7 +993,7 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
             &FTPClient::ftpDone,
             this,
             &Dialog::threadDoneSlot);
-    thread->setServer(m_server,m_username,m_password);
+    thread->setServerSlot(m_server,m_username,m_password);
     thread->recvFile(file.fileName(),stringToFtp(m_currentDir),
                      stringToFtp(fileName),m_progress);
     m_threadNumber++;
@@ -976,8 +1003,8 @@ void Dialog::downloadFile(QString &savePath,QString &fileName)
 void Dialog::downloadDir(QString &savePath, QString &dirName)
 {
     QDir dir(QStringLiteral("%0/%1")
-             .arg(savePath)
-             .arg(dirName));
+                 .arg(savePath)
+                 .arg(dirName));
     if ( dir.exists()) {
         int ret = QMessageBox::warning(this,
                                        QStringLiteral("警告"),
@@ -995,8 +1022,8 @@ void Dialog::downloadDir(QString &savePath, QString &dirName)
         case 1:
             while (1) {
                 dir.setPath(QStringLiteral("%0/%1(%2)")
-                            .arg(savePath).arg(dirName)
-                            .arg(QString::number(k)));
+                                .arg(savePath).arg(dirName)
+                                .arg(QString::number(k)));
                 if ( !dir.exists()) break;
                 k++;
             }
@@ -1024,7 +1051,7 @@ void Dialog::downloadDir(QString &savePath, QString &dirName)
     connect(thread,
             &FTPClient::ftpDone,this,
             &Dialog::threadDoneSlot);
-    thread->setServer(m_server,m_username,m_password);
+    thread->setServerSlot(m_server,m_username,m_password);
     thread->recvDir(dir.path(),stringToFtp(m_currentDir),
                     stringToFtp(dirName),m_progress);
     m_threadNumber++;
@@ -1078,7 +1105,8 @@ void Dialog::uploadFile(QStringList &fileList)
     if ( m_pFtp->state() == QFtp::Unconnected) {
         this->connectToFtp();
     }
-    if (m_pFtp->state() != QFtp::Login) {
+    if (m_pFtp->state() != QFtp::LoggedIn) {
+        //if (m_pFtp->state() != QFtp::Login) {//疑似写错
         QMessageBox::critical(this,
                               QStringLiteral("错误"),
                               QStringLiteral("连接异常!"),
@@ -1094,14 +1122,14 @@ void Dialog::uploadFile(QStringList &fileList)
             QTreeWidgetItem *item = ui->treeWidgetFtp->topLevelItem(i);
             if ( item->text(0) == "..") continue;
             if ( item->data(2,Qt::UserRole) == OTHER &&
-                 item->text(0) == fileInfo.fileName()) {
+                item->text(0) == fileInfo.fileName()) {
                 int ret =QMessageBox::warning(this,
-                                              QStringLiteral("警告"),
-                                              QString(QStringLiteral("文件[%0]已存在！\n（建议：重命名文件后上传）"))
-                                              .arg(fileInfo.fileName()),
-                                              QStringLiteral("取消"),
-                                              QStringLiteral("覆盖")
-                                              );
+                                               QStringLiteral("警告"),
+                                               QString(QStringLiteral("文件[%0]已存在！\n（建议：重命名文件后上传）"))
+                                                   .arg(fileInfo.fileName()),
+                                               QStringLiteral("取消"),
+                                               QStringLiteral("覆盖")
+                                               );
 
                 if ( !ret) {
                     ok = true;
@@ -1136,7 +1164,7 @@ void Dialog::uploadFile(QStringList &fileList)
                 &FTPClient::ftpDone,
                 this,
                 &Dialog::threadDoneSlot);
-        thread->setServer(m_server,m_username,m_password);
+        thread->setServerSlot(m_server,m_username,m_password);
         QString fileName = fileInfo.fileName();
         thread->sendFile(filePath,stringToFtp(m_currentDir),
                          stringToFtp(fileName),m_progress);
@@ -1150,7 +1178,8 @@ void Dialog::uploadDir(QString &dirPath)
     if ( m_pFtp->state() == QFtp::Unconnected) {
         this->connectToFtp();
     }
-    if (m_pFtp->state() != QFtp::Login) {
+    if (m_pFtp->state() != QFtp::LoggedIn) {
+        //if (m_pFtp->state() != QFtp::Login) {//疑似写错
         QMessageBox::critical(this,
                               QStringLiteral("错误"),
                               QStringLiteral("连接异常!"),
@@ -1163,12 +1192,12 @@ void Dialog::uploadDir(QString &dirPath)
         QTreeWidgetItem *item = ui->treeWidgetFtp->topLevelItem(i);
         if ( item->text(0) == "..") continue;
         if ( item->data(2,Qt::UserRole) == DIR &&
-             item->text(0) == dir.dirName()) {
+            item->text(0) == dir.dirName()) {
 
             QMessageBox::warning(this,
                                  QStringLiteral("警告"),
                                  QString(QStringLiteral("文件夹[%0]已存在！\n（建议：重命名文件夹后上传）"))
-                                 .arg(dir.dirName()),
+                                     .arg(dir.dirName()),
                                  QStringLiteral("确定"));
             return;
         }
@@ -1177,9 +1206,10 @@ void Dialog::uploadDir(QString &dirPath)
     m_threadMutex.lock();
     FTPClient *thread = new FTPClient(this);
     QProgressBar *m_progress = new QProgressBar(this);
+
     m_progress->setToolTip(dir.dirName());
     m_progress->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    ui->layout1->addWidget(m_progress);
+
     connect(thread,
             &FTPClient::ftpDone,
             thread,
@@ -1192,8 +1222,25 @@ void Dialog::uploadDir(QString &dirPath)
             &FTPClient::ftpDone,
             this,
             &Dialog::threadDoneSlot);
-    thread->setServer(m_server,m_username,m_password);
-    thread->sendDir(dirPath.left(dirPath.lastIndexOf("/") + 1),m_currentDir,dirPath,m_progress);
+
+    //begin 创建一个线程
+    QThread * t = new QThread(nullptr);
+    thread->moveToThread(t);
+    t->start();
+    connect(this,
+            &Dialog::setServer,
+            thread,
+            &FTPClient::setServerSlot);
+    connect(this,
+            &Dialog::sendDir,
+            thread,
+            &FTPClient::sendDirSlot);
+    emit setServer(m_server, m_username, m_password);
+    emit sendDir(dirPath.left(dirPath.lastIndexOf("/") + 1), m_currentDir, dirPath, m_progress);
+
+    //thread->setServerSlot(m_server, m_username, m_password);
+    //thread->sendDirSlot(dirPath.left(dirPath.lastIndexOf("/") + 1), m_currentDir, dirPath, m_progress);
+    //end
     m_threadNumber++;
     m_threadMutex.unlock();
 }

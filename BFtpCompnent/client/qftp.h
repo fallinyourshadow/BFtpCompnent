@@ -43,10 +43,10 @@
 #define QFTP_H
 
 #include <QtCore/qstring.h>
-#include "qurlinfo.h"
 #include <QtCore/qobject.h>
+#include <qurlinfo.h>
 
-QT_BEGIN_HEADER
+QT_BEGIN_NAMESPACE
 
 class QFtpPrivate;
 
@@ -55,7 +55,7 @@ class QFtp : public QObject
     Q_OBJECT
 
 public:
-    explicit QFtp(QObject *parent = nullptr);
+    explicit QFtp(QObject *parent = 0);
     virtual ~QFtp();
 
     enum State {
@@ -106,7 +106,7 @@ public:
     int setTransferMode(TransferMode mode);
     int list(const QString &dir = QString());
     int cd(const QString &dir);
-    int get(const QString &file, QIODevice *dev=0, qulonglong size = 0, TransferType type = Binary);
+    int get(const QString &file, QIODevice *dev=0, TransferType type = Binary);
     int put(const QByteArray &data, const QString &file, TransferType type = Binary);
     int put(QIODevice *dev, const QString &file, TransferType type = Binary);
     int remove(const QString &file);
@@ -156,6 +156,6 @@ private:
     Q_PRIVATE_SLOT(d, void _q_piFtpReply(int, const QString&))
 };
 
-QT_END_HEADER
+QT_END_NAMESPACE
 
 #endif // QFTP_H

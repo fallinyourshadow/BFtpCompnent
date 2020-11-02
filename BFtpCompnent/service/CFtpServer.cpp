@@ -167,9 +167,21 @@ bool CFtpServer::StartListening( unsigned long ulAddr, unsigned short int usPort
 #ifndef WIN32
         int on = 1;
 #endif
+        //begin 新增 疑似与系统版本有关
+        WORD version(0);
+        WSADATA wsadata;
+        int socket_return(0);
+        version = MAKEWORD(2,2);
+        socket_return = WSAStartup(version, &wsadata);
+        qDebug() << socket_return << socket_return;
+        if (socket_return != 0)
+        {
+            return 0;
+        }
+        //end
         this->ListeningSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        qDebug()  << (ListeningSock != INVALID_SOCKET);
-        //qDebug() << WSAGetLastError();
+        qDebug()  << (ListeningSock != INVALID_SOCKET) << "fd ="<< this->ListeningSock;
+
         if( ListeningSock != INVALID_SOCKET
         #ifndef WIN32 // On win32, SO_REUSEADDR allow 2 sockets to listen on the same TCP-Port.
                 && setsockopt( ListeningSock, SOL_SOCKET, SO_REUSEADDR,(char *) &on, sizeof( on ) ) != SOCKET_ERROR
@@ -186,7 +198,6 @@ bool CFtpServer::StartListening( unsigned long ulAddr, unsigned short int usPort
             if( ListeningSock != INVALID_SOCKET)
             {
                 CloseSocket( ListeningSock );
-
             }
         }
     }
@@ -230,7 +241,7 @@ bool CFtpServer::StartAccepting( void )
 #ifdef WIN32
             hAcceptingThread = (HANDLE) _beginthreadex( nullptr, 0,
                                                         StartAcceptingEx, this, 0, &uAcceptingThreadID );
-            if( hAcceptingThread != 0 ) {
+            if( hAcceptingThread != nullptr ) {
 #else
             if( pthread_create( &AcceptingThreadID, &m_pattrServer,
                                 StartAcceptingEx, this ) == 0 ) {
@@ -272,7 +283,7 @@ void* CFtpServer::StartAcceptingEx( void *pvParam )
 #ifdef WIN32
                 pClient->hClientThread = (HANDLE) _beginthreadex( nullptr, 0,
                                                                   pClient->Shell, pClient, 0, &pClient->uClientThreadID );
-                if( pClient->hClientThread == 0 ) {
+                if( pClient->hClientThread == nullptr ) {
 #else
                 if( pthread_create( &pClient->ClientThreadID, &pFtpServer->m_pattrClient,
                                     pClient->Shell, pClient ) != 0 ) {
@@ -314,7 +325,7 @@ char* CFtpServer::CClientEntry::BuildPath( char* pszAskedPath, char **pszVirtual
         char *pszVirtualP = BuildVirtualPath( pszAskedPath );
         if( pszVirtualP ) {
 
-            if( snprintf( pszBuffer, MAX_PATH + 4, "%s/%s",
+            if( snprintf(pszBuffer, MAX_PATH + 4, "%s/%s",
                           pUser->GetStartDirectory(), pszVirtualP ) > 0 )
             {
                 SimplifyPath( pszBuffer );
@@ -326,7 +337,6 @@ char* CFtpServer::CClientEntry::BuildPath( char* pszAskedPath, char **pszVirtual
                     return pszBuffer;
                 }
             }
-
         }
         delete [] pszBuffer;
 
@@ -2555,14 +2565,19 @@ bool CFtpServer::CEnumFileInfo::FindFirst( const char *pszPath )
 bool CFtpServer::CEnumFileInfo::FindNext()
 {
 #ifdef WIN32
-    bool i = false;
+    bool flag = false;
     if( hFile == -1L ) {
         hFile = _findfirst( pszTempPath, &c_file );
         if( hFile != -1 )
-            i = true;
-    } else if( _findnext( hFile, &c_file ) == 0 )
-        i = true;
-    if( i ) {
+            flag = true;
+    }
+    else if( _findnext( hFile, &c_file ) == 0 )
+    {
+        flag = true;
+    }
+
+
+    if( flag ) {
         qint64 iDirPathLen = strlen( szDirPath );
         qint64 iFileNameLen = strlen( c_file.name );
         if( iDirPathLen + iFileNameLen >= MAX_PATH )

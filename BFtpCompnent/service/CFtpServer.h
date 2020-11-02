@@ -1088,7 +1088,8 @@ class CFtpServer::CEnumFileInfo
 		bool FindClose();
 
 		#ifdef WIN32
-			long hFile;
+        long long hFile;//windows 10
+            //long hFile;//windows 7
 			char pszTempPath[ MAX_PATH + 1 ];
 			#ifdef __USE_FILE_OFFSET64
 				struct _finddatai64_t c_file;

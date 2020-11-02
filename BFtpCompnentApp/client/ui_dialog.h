@@ -60,6 +60,11 @@ public:
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         pushButtonHome = new QPushButton(Dialog);
         pushButtonHome->setObjectName(QString::fromUtf8("pushButtonHome"));
+        QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(pushButtonHome->sizePolicy().hasHeightForWidth());
+        pushButtonHome->setSizePolicy(sizePolicy);
         pushButtonHome->setMinimumSize(QSize(24, 24));
         pushButtonHome->setAutoFillBackground(true);
         pushButtonHome->setStyleSheet(QString::fromUtf8(""));
@@ -73,18 +78,30 @@ public:
 
         labelPath_2 = new QLabel(Dialog);
         labelPath_2->setObjectName(QString::fromUtf8("labelPath_2"));
+        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Preferred);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(labelPath_2->sizePolicy().hasHeightForWidth());
+        labelPath_2->setSizePolicy(sizePolicy1);
 
         horizontalLayout->addWidget(labelPath_2);
 
         lineEditPath = new QLineEdit(Dialog);
         lineEditPath->setObjectName(QString::fromUtf8("lineEditPath"));
         lineEditPath->setEnabled(true);
+        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(lineEditPath->sizePolicy().hasHeightForWidth());
+        lineEditPath->setSizePolicy(sizePolicy2);
         lineEditPath->setFrame(false);
 
         horizontalLayout->addWidget(lineEditPath);
 
         pushButtonRefresh = new QPushButton(Dialog);
         pushButtonRefresh->setObjectName(QString::fromUtf8("pushButtonRefresh"));
+        sizePolicy.setHeightForWidth(pushButtonRefresh->sizePolicy().hasHeightForWidth());
+        pushButtonRefresh->setSizePolicy(sizePolicy);
         pushButtonRefresh->setMinimumSize(QSize(24, 24));
         pushButtonRefresh->setStyleSheet(QString::fromUtf8(""));
         QIcon icon2;
@@ -97,11 +114,11 @@ public:
 
         lineEdit = new QLineEdit(Dialog);
         lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        sizePolicy.setHorizontalStretch(9);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(lineEdit->sizePolicy().hasHeightForWidth());
-        lineEdit->setSizePolicy(sizePolicy);
+        QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy3.setHorizontalStretch(207);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(lineEdit->sizePolicy().hasHeightForWidth());
+        lineEdit->setSizePolicy(sizePolicy3);
         lineEdit->setAcceptDrops(true);
         lineEdit->setClearButtonEnabled(true);
 

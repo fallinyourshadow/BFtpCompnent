@@ -631,7 +631,7 @@ bool QFtpDTP::parseDir(const QByteArray &buffer, const QString &userName, QUrlIn
     }
 
     // DOS style FTP servers
-    QRegExp dosPattern(QLatin1String("^(\\d\\d-\\d\\d-\\d\\d\\ \\ \\d\\d:\\d\\d[AP]M)\\s+"
+    QRegExp dosPattern(QLatin1String("^(\\d\\d-\\d\\d-\\d\\d\\d?\\d?\\ \\ \\d\\d:\\d\\d[AP]M)\\s+"
                                      "(<DIR>|\\d+)\\s+(\\S.*)$"));
     if (dosPattern.indexIn(bufferStr) == 0) {
         _q_parseDosDir(dosPattern.capturedTexts(), userName, info);
@@ -1769,11 +1769,6 @@ int QFtp::list(const QString &dir)
 
     \sa commandStarted() commandFinished()
 */
-//int QFtp::size(const QString &filename)
-//{
-//    return d->addCommand(new QFtpCommand(Rmdir, QStringList(QLatin1String("SIZE ") + filename + QLatin1String("\r\n"))));
-//}
-
 int QFtp::cd(const QString &dir)
 {
     return d->addCommand(new QFtpCommand(Cd, QStringList(QLatin1String("CWD ") + dir + QLatin1String("\r\n"))));
@@ -1819,7 +1814,7 @@ int QFtp::cd(const QString &dir)
     \sa readyRead() dataTransferProgress() commandStarted()
     commandFinished()
 */
-int QFtp::get(const QString &file, QIODevice *dev, qulonglong size, TransferType type)
+int QFtp::get(const QString &file, QIODevice *dev, TransferType type)
 {
     QStringList cmds;
     if (type == Binary)
@@ -1828,10 +1823,6 @@ int QFtp::get(const QString &file, QIODevice *dev, qulonglong size, TransferType
         cmds << QLatin1String("TYPE A\r\n");
     cmds << QLatin1String("SIZE ") + file + QLatin1String("\r\n");
     cmds << QLatin1String(d->transferMode == Passive ? "PASV\r\n" : "PORT\r\n");
-    if (size > 0)
-    {
-        cmds << QLatin1String("REST ") + QString::number(size) + QLatin1String("\r\n");
-    }
     cmds << QLatin1String("RETR ") + file + QLatin1String("\r\n");
     return d->addCommand(new QFtpCommand(Get, cmds, dev));
 }
@@ -2258,10 +2249,6 @@ void QFtpPrivate::_q_startNextCommand()
             if (!c->is_ba && c->data.dev) {
                 pi.dtp.setDevice(c->data.dev);
             }
-//            else if(c->is_ba)
-//            {
-//                pi.dtp.setData(c->data.ba);
-//            }
         } else if (c->command == QFtp::Close) {
             state = QFtp::Closing;
             emit q->stateChanged(state);

@@ -22,11 +22,11 @@ bool FtpServer::init(unsigned short port)
         close();
     }
     m_pFtpServer = new CFtpServer;
-    //    m_pFtpServer->SetCheckPassDelay(3);
+    //   m_pFtpServer->SetCheckPassDelay(3);
     m_pFtpServer->SetMaxPasswordTries( 3 );
     m_pFtpServer->SetNoLoginTimeout( 45 ); // seconds
     m_pFtpServer->SetNoTransferTimeout( 90 ); // seconds
-    m_pFtpServer->SetDataPortRange( 100, 900 ); // data TCP-Port range = [100-999]
+    m_pFtpServer->SetDataPortRange( 0,  0xffff); // data TCP-Port range = [100-999]
 
     unsigned short iPort = port;
 
@@ -83,7 +83,8 @@ bool FtpServer::addUser(const QString &name, const QString &passwd, const QStrin
     ucUserPriv |= CFtpServer::CREATEDIR | CFtpServer::DELETEDIR;
     CFtpServer::CUserEntry *pUser = m_pFtpServer->AddUser(name.toStdString().c_str(),
                                                           passwd.toStdString().c_str(),
-                                                          home.toStdString().c_str());
+                                                            home.toStdString().c_str());
+    qDebug() << __FUNCDNAME__;
     if(pUser)
     {
         //qDebug() << "Ftp Server add user success: " << name << passwd << home;
@@ -92,7 +93,8 @@ bool FtpServer::addUser(const QString &name, const QString &passwd, const QStrin
         m_userMap.insert(name, static_cast<void *>(pUser));
         m_lock.unlock();
         return true;
-    }else
+    }
+    else
     {
         //qDebug() << "Ftp Server add user failed: " << name << passwd;
         m_lock.unlock();
@@ -137,6 +139,7 @@ bool FtpServer::deleteUser(const QString &name)
 
 bool FtpServer::userExists(const QString &name)
 {
+
     bool b = false;
     m_lock.lock();
     if(m_userMap[name])
@@ -144,6 +147,7 @@ bool FtpServer::userExists(const QString &name)
         b = true;
     }
     m_lock.unlock();
+     qDebug() << __FUNCDNAME__ ;
     return b;
 }
 
