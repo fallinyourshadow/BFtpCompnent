@@ -53,10 +53,17 @@ FtpTask *FtpClientInterface::getDir(bool useThread, const QString &localPath, co
     return task;
 }
 
-FtpTask *FtpClientInterface::removeDir(bool useThread, const QString &objfilepath, const QString &objfileName)
+FtpTask *FtpClientInterface::deleteDir(bool useThread, const QString &ftpDirPath, const QString &dirName)
 {
     FtpTask * task = addTask(useThread);
-    task->removeDir(objfilepath, objfileName);
+    task->deleteDir(ftpDirPath, dirName);
+    return task;
+}
+
+FtpTask *FtpClientInterface::deleteFiles(bool useThread, const QStringList &ftpFilePaths)
+{
+    FtpTask * task = addTask(useThread);
+    task->deleteFiles(ftpFilePaths);
     return task;
 }
 
@@ -102,19 +109,6 @@ void FtpClientInterface::timerEvent(QTimerEvent *event)
 FtpTask *FtpClientInterface::addTask(bool useThread)
 {
     FtpTask * task = new FtpTask(m_linkInfo, useThread, this);
-    //    connect(task,&ThreadTask::done,[=](bool f){
-    //        ThreadTask* origin = qobject_cast<ThreadTask*>(sender());
-    //        if(f)//正常结束
-    //        {
-    //            m_taskList.removeOne(origin);//取出任务
-    //        }
-    //        else//异常
-    //        {
-    //            //根据异常编码分别处理
-    //            sender();
-    //        }
-    //    });
-
     m_taskList.append(task);
     return task;
 }

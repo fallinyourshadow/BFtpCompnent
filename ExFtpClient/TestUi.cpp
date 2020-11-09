@@ -12,13 +12,19 @@
 #include <QFileDialog>
 #include <QIODevice>
 #include <QFileInfo>
+//2020 11 5
 //问题1 0kb的文件无法上传成功
-//问题2 以“新建文件夹”命名的文件无法被正确识别
+//问题2 以中文命名的文件无法被正确识别
 //问题3 下载目录线程结束条件未知，导致无法结束
 //问题4 下载目录会出现崩溃的情况
-//问t题5  下载中文命名的文件无法成功
+//问题5 下载中文命名的文件无法成功
 //还未测试其上传下载文件大小的上限
 
+//2020 11 8
+//问题1 中文目录无法进入
+//问题2 隐藏文件无法识别
+//问题3 上传任务无法正常结束
+//问题4 删除目录无法删除目录本身，只能删除目录中的文件
 TestUi::TestUi(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::TestUi),
@@ -75,6 +81,7 @@ TestUi::TestUi(QWidget *parent)
     connect(ui->treeView, &QTreeView::customContextMenuRequested,[=](const QPoint &pos){
         if(ui->treeView->selectedRows().size() > 0 )//如果选中了某个或多个item
         {
+            qDebug() << __FILE__ << __LINE__ << ui->treeView->selectedRows();
             m_ftpFileOps.move(cursor().pos());
             m_ftpFileOps.show();
         }
@@ -84,6 +91,8 @@ TestUi::TestUi(QWidget *parent)
             m_localFileOps.show();
         }
     });
+
+    changeDir("/");
 }
 
 TestUi::~TestUi()
@@ -104,7 +113,7 @@ void TestUi::on_cdDone(bool error, const QString &errMsg)
     FtpTask * origin = qobject_cast<FtpTask *>(sender()) ;
     if(error)
     {
-        // //qDebug()<< __FILE__ << __LINE__ << errMsg;
+        //qDebug()<< __FILE__ << __LINE__ << errMsg;
         m_pExFtpClient->stopTask(origin);//停止或重试这个任务
         //m_pExFtpClient->reTry(origin);//重试，若选择重试就不要释放该对象，调用后会执行对应操作
     }
@@ -139,7 +148,8 @@ void TestUi::on_getListDone(bool error, const QString &errMsg)
         foreach(QUrlInfo v, infos)
         {
             QString name = v.name();
-            m_pModel->setItem(i,0,new QStandardItem(TaskExecutor::ftpToString(name)));
+            qDebug() << "dasdasdasd"<< name;
+            m_pModel->setItem(i,0,new QStandardItem(name));
             m_pModel->setItem(i,1,new QStandardItem(v.lastModified().toString()));
             if(v.isDir())
             {
@@ -169,7 +179,7 @@ void TestUi::on_getListDone(bool error, const QString &errMsg)
 
 void TestUi::on_upLoadDirDone(bool error, const QString &errMsg)
 {
-
+    qDebug() << "on_upLoadDirDone";
 }
 
 void TestUi::on_upLoadFileDone(bool error, const QString &errMsg)
@@ -216,6 +226,41 @@ void TestUi::on_downLoadFileDone(bool error, const QString &errMsg)
 void TestUi::on_downLoadDirDone(bool error, const QString &errMsg)
 {
     FtpTask * origin = qobject_cast<FtpTask *>(sender()) ;
+    qDebug() << "on_downLoadDirDone";
+    if(error)
+    {
+        // //qDebug()<< __FILE__ << __LINE__ << errMsg;
+        //m_upLoadTaskList.removeOne(origin);//移除一个任务标记
+        m_pExFtpClient->stopTask(origin);//停止或重试这个任务
+    }
+    else
+    {
+        //m_upLoadTaskList.removeOne(origin);//移除一个任务标记，用于共享进度条
+        m_pExFtpClient->stopTask(origin);//停止这个任务
+    }
+}
+
+void TestUi::on_deleteFileDone(bool error, const QString &errMsg)
+{
+    qDebug() << __FILE__ << __LINE__ << "on_deleteFileDone";
+    FtpTask * origin = qobject_cast<FtpTask *>(sender()) ;
+    if(error)
+    {
+        // //qDebug()<< __FILE__ << __LINE__ << errMsg;
+        //m_upLoadTaskList.removeOne(origin);//移除一个任务标记
+        m_pExFtpClient->stopTask(origin);//停止或重试这个任务
+    }
+    else
+    {
+        //m_upLoadTaskList.removeOne(origin);//移除一个任务标记，用于共享进度条
+        m_pExFtpClient->stopTask(origin);//停止这个任务
+    }
+}
+
+void TestUi::on_deleteDirDone(bool error, const QString &errMsg)
+{
+    FtpTask * origin = qobject_cast<FtpTask *>(sender()) ;
+    qDebug() << __FILE__ << __LINE__ << "on_deleteDirDone";
     if(error)
     {
         // //qDebug()<< __FILE__ << __LINE__ << errMsg;
@@ -241,6 +286,7 @@ void TestUi::on_dataTransferProgress(qint64 sent, qint64 total)
     }
     m_sent += sent;//size总量增加
     int adder = m_sent/m_total * 100;
+    qDebug() << "adder" << adder;
     // //qDebug() << __FILE__ << __LINE__<< "adder" << adder;
     //更新进度条
     ui->progressBar->setRange(0,100);
@@ -250,11 +296,9 @@ void TestUi::on_dataTransferProgress(qint64 sent, qint64 total)
 void TestUi::on_treeView_doubleClicked(const QModelIndex &index)
 {
     QStandardItem * item = m_pModel->itemFromIndex(index);
-
     if(m_pModel->item(item->row(),2)->text() == "dir")
     {
         item = m_pModel->item(item->row(),0);
-        //qDebug() << "item->text();"<< item->text();
         ui->lineEdit_path->setText(
                     ui->lineEdit_path->text().
                     append(item->text()).
@@ -366,18 +410,44 @@ void TestUi::on_downLoadFileTriggered()
         {
             FtpTask * downLoadDir = m_pExFtpClient->getDir(true, localPaths, path, name);//下载目录
             connect(downLoadDir,&FtpTask::done,this,&TestUi::on_downLoadDirDone);
+            connect(downLoadDir,&FtpTask::dataTransferProgress,
+                    this,&TestUi::on_dataTransferProgress);//进度条参数
         }
     }
     if(ftpNamePaths.size() > 0)
     {
         FtpTask * downLoadFile = m_pExFtpClient->getFiles(true, localPaths, path, ftpNamePaths);//下载文件
         connect(downLoadFile,&FtpTask::done,this,&TestUi::on_downLoadFileDone);
+        connect(downLoadFile,&FtpTask::dataTransferProgress,
+                this,&TestUi::on_dataTransferProgress);//进度条参数
     }
 }
 
 void TestUi::on_deleteFileTriggered()
 {
-
+    QList<qint32> selectedRows = ui->treeView->selectedRows();
+    QStringList ftpFilePaths;//文件名的地址
+    foreach(qint32 row, selectedRows)//组成所有要删除的文件路径
+    {
+        QString type = m_pModel->item(row,2)->text();
+        QString name = m_pModel->item(row,0)->text();
+        QString path = ui->lineEdit_path->text();//获取当前ftp将要的操作文件的
+        if(type != "dir")
+        {
+            path.append(name);
+            ftpFilePaths.append(path);
+        }
+        else
+        {
+            FtpTask * deleteDir = m_pExFtpClient->deleteDir(true, path, name);//删除目录
+            connect(deleteDir,&FtpTask::done,this,&TestUi::on_deleteDirDone);
+        }
+    }
+    if(ftpFilePaths.size() > 0)
+    {
+        FtpTask * deleteFiles = m_pExFtpClient->deleteFiles(false,ftpFilePaths);//删除文件
+        connect(deleteFiles,&FtpTask::done,this,&TestUi::on_deleteFileDone);
+    }
 }
 
 void TestUi::changeDir(QString path)
@@ -401,3 +471,21 @@ void TestUi::on_treeView_pressed(const QModelIndex &index)
     }
 }
 
+
+void TestUi::on_pushButton_clicked()
+{
+    QString uponList = ui->lineEdit_path->text();
+    if(uponList != "/")
+    {
+        uponList.remove(uponList.size() - 1,1);
+        int lastCut = uponList.lastIndexOf(QChar('/'));
+        int size = uponList.size() - lastCut - 1;
+        uponList.remove(lastCut + 1, size);
+        changeDir(uponList);
+    }
+}
+
+void TestUi::on_pushButto_refresh_clicked()
+{
+    changeDir(ui->lineEdit_path->text());
+}

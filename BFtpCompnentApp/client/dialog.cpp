@@ -347,6 +347,8 @@ QString Dialog::stringToFtp(QString &input)
 {
 #if 1
     QTextCodec *codec= QTextCodec::codecForName("gbk");
+    qDebug() << "unicode"<<codec->fromUnicode(input);
+    qDebug() << "fromLatin1"<<QString::fromLatin1(codec->fromUnicode(input));
     return QString::fromLatin1(codec->fromUnicode(input));
 #else
     return input;
@@ -365,6 +367,7 @@ void Dialog::doubleclickItemSlot(QTreeWidgetItem *treeWgtItem, int)
     }
     QString input = treeWgtItem->text(0);
     m_pFtp->cd(stringToFtp(input));
+    qDebug() << input.data()->unicode();
 }
 
 void Dialog::treeWdtContexMenuSlot(QPoint point)
@@ -702,8 +705,6 @@ void Dialog::ListInfoSlot(const QUrlInfo &info)
         QString number = QString::number(integer) + '.' + QString::number(remainder);
         item->setText(4, QString::number(number.toFloat() / 1024, 'f', 2) + "MB");
     }
-
-
     ui->treeWidgetFtp->addTopLevelItem(item);
 }
 

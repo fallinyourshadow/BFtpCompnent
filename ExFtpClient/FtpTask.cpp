@@ -8,6 +8,7 @@ FtpTask::FtpTask(const LinkInfo &info, bool useThread, QObject *parent):
 {
 
     m_pTaskLink = new TaskExecutor(info);
+
     if(useThread)//使用线程
     {
         m_pThread = new QThread(this);
@@ -24,8 +25,9 @@ FtpTask::FtpTask(const LinkInfo &info, bool useThread, QObject *parent):
     connect(this, &FtpTask::dirSent, m_pTaskLink, &TaskExecutor::on_dirSent);
     connect(this, &FtpTask::filesGot, m_pTaskLink, &TaskExecutor::on_filesGot);
     connect(this, &FtpTask::dirGot, m_pTaskLink, &TaskExecutor::on_dirGot);
-    connect(this, &FtpTask::dirRemoved, m_pTaskLink, &TaskExecutor::on_dirRemoved);
-    connect(this, &FtpTask::reTried, m_pTaskLink, &TaskExecutor::on_reTry);
+    connect(this, &FtpTask::dirDeleted, m_pTaskLink, &TaskExecutor::on_dirDeleted);
+    connect(this, &FtpTask::filesDeleted, m_pTaskLink, &TaskExecutor::on_filesDeleted);
+   // connect(this, &FtpTask::reTried, m_pTaskLink, &TaskExecutor::on_reTry);
     //处理完毕向外抛出done信号
     connect(m_pTaskLink, &TaskExecutor::done, [=](bool error, const QString &errMsg)
     {
@@ -33,7 +35,10 @@ FtpTask::FtpTask(const LinkInfo &info, bool useThread, QObject *parent):
     });
     connect(m_pTaskLink, &TaskExecutor::listInfo, [=](const QUrlInfo &info)
     {
-        this->m_infoList.append(info);//保存
+        QUrlInfo localCodeInfo (info);
+        QString name = info.name();
+        localCodeInfo.setName(TaskExecutor::ftpToString(name));
+        this->m_infoList.append(localCodeInfo);//保存
     });
     connect(m_pTaskLink,
             &TaskExecutor::dataTransferProgress,//数据传输处理，可以获得该信信号
@@ -81,9 +86,14 @@ void FtpTask::getDir(const QString &filepath, const QString &objdirpath, const Q
     Q_EMIT dirGot(filepath, objdirpath, objfileName);
 }
 
-void FtpTask::removeDir(const QString &objfilepath, const QString &objfileName)
+void FtpTask::deleteDir(const QString &ftpDirPath, const QString &dirName)
 {
-    Q_EMIT dirRemoved(objfilepath, objfileName);
+    Q_EMIT dirDeleted(ftpDirPath, dirName);
+}
+
+void FtpTask::deleteFiles(const QStringList &ftpFilePaths)
+{
+    Q_EMIT filesDeleted(ftpFilePaths);
 }
 
 const QList<QUrlInfo> & FtpTask::infoList()
@@ -91,10 +101,10 @@ const QList<QUrlInfo> & FtpTask::infoList()
     return m_infoList;
 }
 
-void FtpTask::reTry()
-{
-    Q_EMIT reTried();
-}
+//void FtpTask::reTry()
+//{
+//    Q_EMIT reTried();
+//}
 
 //QString ThreadTask::errMsg()
 //{

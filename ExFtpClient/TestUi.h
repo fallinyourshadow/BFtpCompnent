@@ -25,7 +25,9 @@ private slots:
     void on_upLoadDirDone(bool error, const QString &errMsg);
     void on_upLoadFileDone(bool error, const QString &errMsg);
     void on_downLoadFileDone(bool error, const QString &errMsg);
-   void  on_downLoadDirDone(bool error, const QString &errMsg);
+    void on_downLoadDirDone(bool error, const QString &errMsg);
+    void on_deleteFileDone(bool error, const QString &errMsg);
+    void on_deleteDirDone(bool error, const QString &errMsg);
     void on_dataTransferProgress(qint64 sent, qint64 total);
 
     void on_pushButton_home_clicked();//home
@@ -36,6 +38,10 @@ private slots:
     void on_deleteFileTriggered();//右键菜单删除
 
     void on_treeView_pressed(const QModelIndex &index);
+
+    void on_pushButton_clicked();
+
+    void on_pushButto_refresh_clicked();
 
 private:
     Ui::TestUi *ui;

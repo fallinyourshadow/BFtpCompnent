@@ -3,7 +3,10 @@
 
 MutiSelectTreeView::MutiSelectTreeView(QWidget *parent) : QTreeView(parent)
 {
-
+    connect(this,&MutiSelectTreeView::doubleClicked,[=](){
+        m_selectedRows.clear();
+        selectionModel()->clear();
+    });
 }
 
 QList<qint32> MutiSelectTreeView::selectedRows()
