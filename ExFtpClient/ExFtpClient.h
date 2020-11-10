@@ -5,13 +5,12 @@
 #include <QTimerEvent>
 #include <QObject>
 
+
 class FtpClientInterface : public QObject
 {
     Q_OBJECT
 public:
-
     explicit FtpClientInterface(const LinkInfo &info, QObject *parent = nullptr);
-
     //创建任务的所有入口
     FtpTask *changeDir(bool useThread, const QString &targetDir);//延根目录移动
     FtpTask *getList(bool useThread,  const QString &objdirpath);//list
@@ -25,7 +24,6 @@ public:
     //所有任务的出口
     void stopTask(FtpTask * target);//结束某个任务，并释放资源，如果打开了线程则立刻关闭线程
     // void reTry(FtpTask * target);//根据内置的信息重试任务
-
     //连接配置接口
     void changeLinkInfo(const LinkInfo &info);//改变要连接的服务器
     //获取目录树Item

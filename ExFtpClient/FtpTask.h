@@ -17,7 +17,7 @@ signals:
     void filesGot(QString localPath,QString ftpFilePath, QStringList fileNames);
     void dirGot(QString dirpath, QString objDirpath, QString objDirName);
     void dirDeleted(QString objfilepath, QString objfileName);
-   void  filesDeleted(QStringList ftpFilePaths);
+    void filesDeleted(QStringList ftpFilePaths);
     void reTried();
     //对外信号
     void done(bool error, const QString &errMsg);//任务结束了

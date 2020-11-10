@@ -32,6 +32,7 @@ HEADERS += \
     MutiSelectTreeView.h \
     TaskExecutor.h \
     TestUi.h \
+    defines.h \
     ftpclient.h \
     qftp.h \
     qurlinfo.h \

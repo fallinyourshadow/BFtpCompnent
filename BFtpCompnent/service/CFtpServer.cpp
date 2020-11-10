@@ -184,11 +184,11 @@ bool CFtpServer::StartListening( unsigned long ulAddr, unsigned short int usPort
         qDebug()  << (ListeningSock != INVALID_SOCKET) << "fd ="<< this->ListeningSock;
 
         if( ListeningSock != INVALID_SOCKET
-        #ifndef WIN32 // On win32, SO_REUSEADDR allow 2 sockets to listen on the same TCP-Port.
-                && setsockopt( ListeningSock, SOL_SOCKET, SO_REUSEADDR,(char *) &on, sizeof( on ) ) != SOCKET_ERROR
-        #endif
-                && bind( ListeningSock, (struct sockaddr *) &sin, sizeof( struct sockaddr_in ) ) != SOCKET_ERROR
-                && listen( ListeningSock, 0) != SOCKET_ERROR )
+#ifndef WIN32 // On win32, SO_REUSEADDR allow 2 sockets to listen on the same TCP-Port.
+            && setsockopt( ListeningSock, SOL_SOCKET, SO_REUSEADDR,(char *) &on, sizeof( on ) ) != SOCKET_ERROR
+#endif
+            && bind( ListeningSock, (struct sockaddr *) &sin, sizeof( struct sockaddr_in ) ) != SOCKET_ERROR
+            && listen( ListeningSock, 0) != SOCKET_ERROR )
         {
             usListeningPort = usPort;
             bIsListening = true;
@@ -241,11 +241,11 @@ bool CFtpServer::StartAccepting( void )
         if( !IsAccepting() && IsListening() ) {
 #ifdef WIN32
             hAcceptingThread = (HANDLE) _beginthreadex( nullptr, 0,
-                                                        StartAcceptingEx, this, 0, &uAcceptingThreadID );
+                                                       StartAcceptingEx, this, 0, &uAcceptingThreadID );
             if( hAcceptingThread != nullptr ) {
 #else
             if( pthread_create( &AcceptingThreadID, &m_pattrServer,
-                                StartAcceptingEx, this ) == 0 ) {
+                               StartAcceptingEx, this ) == 0 ) {
 #endif
                 OnServerEventCb( START_ACCEPTING );
                 bIsAccepting = true;
@@ -283,11 +283,11 @@ void* CFtpServer::StartAcceptingEx( void *pvParam )
             if( pClient != nullptr ) {
 #ifdef WIN32
                 pClient->hClientThread = (HANDLE) _beginthreadex( nullptr, 0,
-                                                                  pClient->Shell, pClient, 0, &pClient->uClientThreadID );
+                                                                 pClient->Shell, pClient, 0, &pClient->uClientThreadID );
                 if( pClient->hClientThread == nullptr ) {
 #else
                 if( pthread_create( &pClient->ClientThreadID, &pFtpServer->m_pattrClient,
-                                    pClient->Shell, pClient ) != 0 ) {
+                                   pClient->Shell, pClient ) != 0 ) {
 #endif
                     delete pClient;
                     pFtpServer->OnServerEventCb( THREAD_ERROR );
@@ -362,7 +362,7 @@ char* CFtpServer::CClientEntry::BuildVirtualPath( char* pszAskedPath )
                     bErr = true;
             } else {
                 if( snprintf( pszBuffer, MAX_PATH + 4, "%s/%s",
-                              GetWorkingDirectory(), pszAskedPath ) > 0 )
+                             GetWorkingDirectory(), pszAskedPath ) > 0 )
                 {
                     SimplifyPath( pszBuffer );
                     if( strlen( pszBuffer ) > MAX_PATH )
@@ -379,7 +379,6 @@ char* CFtpServer::CClientEntry::BuildVirtualPath( char* pszAskedPath )
 
     } else
         pFtpServer->OnServerEventCb( MEM_ERROR );
-
     return nullptr;
 }
 
@@ -426,8 +425,8 @@ bool CFtpServer::SimplifyPath( char *pszPath )
                     --b;
                     if( *b == '/' ) {
                         if( b == pszPath
-                                || ( b == ( pszPath + 2 ) && isalpha( pszPath[ 0 ] ) && pszPath[ 1 ] == ':' ) // C:
-                                ) {
+                            || ( b == ( pszPath + 2 ) && isalpha( pszPath[ 0 ] ) && pszPath[ 1 ] == ':' ) // C:
+                            ) {
                             if( a[ 3 ] == '/' ) { // e.g. '/foo/../' or 'C:/lol/../'
                                 memmove( b, a + 3, strlen( a + 3 ) + 1 ); // +1 for the \0
                             } else // e.g. '/foo/..' 'C:/foo/..'
@@ -481,9 +480,9 @@ bool CFtpServer::SimplifyPath( char *pszPath )
 CFtpServer::CUserEntry *CFtpServer::AddUser( const char *pszLogin, const char *pszPass, const char *pszStartDir )
 {
     if( pszLogin && pszStartDir
-            && strlen( pszLogin ) <= MaxLoginLen
-            && strlen( pszStartDir ) <= MaxRootPathLen
-            && ( !pszPass || strlen( pszPass ) <= MaxPasswordLen )	)
+        && strlen( pszLogin ) <= MaxLoginLen
+        && strlen( pszStartDir ) <= MaxRootPathLen
+        && ( !pszPass || strlen( pszPass ) <= MaxPasswordLen )	)
     {
         bool bErr = false;
         UserListLock.Enter();
@@ -859,10 +858,10 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
                 {
                     if( pClient->pUser && pClient->pUser->bIsEnabled ) { // User is valid & enabled
                         if( ( pszCmdArg && !strcmp( pszCmdArg, pClient->pUser->szPassword ) )
-                                || !*pClient->pUser->szPassword ) // Password is valid.
+                            || !*pClient->pUser->szPassword ) // Password is valid.
                         {
                             if( pClient->pUser->uiMaxNumberOfClient == 0 //  0 = Unlimited
-                                    ||  pClient->pUser->uiNumberOfClient < pClient->pUser->uiMaxNumberOfClient )
+                                ||  pClient->pUser->uiNumberOfClient < pClient->pUser->uiMaxNumberOfClient )
                             {
                                 pClient->LogIn();
                             } else
@@ -975,7 +974,7 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
                     } else
                         pClient->SendReply( "504 MODE Z disabled." );
 #else
-                } else if( !strcmp( pszCmdArg, "Z" ) ) {
+                    } else if( !strcmp( pszCmdArg, "Z" ) ) {
                     pClient->SendReply( "502 MODE Z non-implemented." );
 #endif
                 } else
@@ -1003,21 +1002,21 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 
 #ifdef CFTPSERVER_ENABLE_ZLIB
             char szFeat[ 73 ] = "211-Features:\r\n"
-                                " CLNT\r\n"
-                                " MDTM\r\n";
+                              " CLNT\r\n"
+                              " MDTM\r\n";
             if( pFtpServer->IsModeZEnabled() )
                 strcat( szFeat, " MODE Z\r\n" );
             strcat( szFeat, " REST STREAM\r\n"
-                            " SIZE\r\n"
-                            "211 End" );
+                           " SIZE\r\n"
+                           "211 End" );
             pClient->SendReply( szFeat );
 #else
             pClient->SendReply( "211-Features:\r\n"
-                                " CLNT\r\n"
-                                " MDTM\r\n"
-                                " REST STREAM\r\n"
-                                " SIZE\r\n"
-                                "211 End"  );
+                               " CLNT\r\n"
+                               " MDTM\r\n"
+                               " REST STREAM\r\n"
+                               " SIZE\r\n"
+                               "211 End"  );
 #endif
 
             continue;
@@ -1026,10 +1025,10 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 
             unsigned int iIp1 = 0, iIp2 = 0, iIp3 = 0, iIp4 = 0, iPort1 = 0, iPort2 = 0;
             if( pClient->eStatus == WAITING && pszCmdArg
-                    && sscanf( pszCmdArg, "%u,%u,%u,%u,%u,%u", &iIp1, &iIp2, &iIp3, &iIp4, &iPort1, &iPort2 ) == 6
-                    && iIp1 <= 255 && iIp2 <= 255 && iIp3 <= 255 && iIp4 <= 255
-                    && iPort1 <= 255 && iPort2 <= 255 && (iIp1|iIp2|iIp3|iIp4) != 0
-                    && ( iPort1 | iPort2 ) != 0 )
+                && sscanf( pszCmdArg, "%u,%u,%u,%u,%u,%u", &iIp1, &iIp2, &iIp3, &iIp4, &iPort1, &iPort2 ) == 6
+                && iIp1 <= 255 && iIp2 <= 255 && iIp3 <= 255 && iIp4 <= 255
+                && iPort1 <= 255 && iPort2 <= 255 && (iIp1|iIp2|iIp3|iIp4) != 0
+                && ( iPort1 | iPort2 ) != 0 )
             {
                 if( pClient->eDataConnection != NONE )
                     pClient->ResetDataConnection();
@@ -1039,8 +1038,8 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
                 unsigned long ulPortIp = inet_addr( szClientIP );
 
                 if( !pFtpServer->IsFXPEnabled() ||
-                        ( ulPortIp == pClient->ulClientIP || pClient->ulClientIP == inet_addr( "127.0.0.1" ) )
-                        ) {
+                    ( ulPortIp == pClient->ulClientIP || pClient->ulClientIP == inet_addr( "127.0.0.1" ) )
+                    ) {
                     pClient->eDataConnection = PORT;
                     pClient->ulDataIp = ulPortIp;
                     pClient->usDataPort = (unsigned short)(( iPort1 * 256 ) + iPort2);
@@ -1071,10 +1070,10 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 #endif
 
                 if( pClient->DataSock != INVALID_SOCKET
-        #ifndef WIN32
-                        && setsockopt( pClient->DataSock, SOL_SOCKET, SO_REUSEADDR,(char *) &on, sizeof( on ) ) != SOCKET_ERROR
-        #endif
-                        ) {
+#ifndef WIN32
+                    && setsockopt( pClient->DataSock, SOL_SOCKET, SO_REUSEADDR,(char *) &on, sizeof( on ) ) != SOCKET_ERROR
+#endif
+                    ) {
                     pClient->usDataPort = 0;
                     unsigned short int usLen; unsigned short int usStart;
                     pFtpServer->GetDataPortRange( &usStart, &usLen );
@@ -1102,8 +1101,8 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 
                     unsigned long ulIp = ntohl( pClient->ulServerIP );
                     pClient->SendReply2( "227 Entering Passive Mode (%lu,%lu,%lu,%lu,%u,%u)",
-                                         (ulIp >> 24) & 255, (ulIp >> 16) & 255, (ulIp >> 8) & 255, ulIp & 255,
-                                         pClient->usDataPort / 256 , pClient->usDataPort % 256 );
+                                        (ulIp >> 24) & 255, (ulIp >> 16) & 255, (ulIp >> 8) & 255, ulIp & 255,
+                                        pClient->usDataPort / 256 , pClient->usDataPort % 256 );
 
                     pClient->eDataConnection = PASV;
                 }
@@ -1177,12 +1176,12 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 
 #ifdef WIN32
                 pClient->CurrentTransfer.hTransferThread =
-                        (HANDLE) _beginthreadex( nullptr, 0, ListThread, pClient,
-                                                 0, &pClient->CurrentTransfer.uTransferThreadID );
+                    (HANDLE) _beginthreadex( nullptr, 0, ListThread, pClient,
+                                            0, &pClient->CurrentTransfer.uTransferThreadID );
                 if( pClient->CurrentTransfer.hTransferThread == 0 ) {
 #else
                 if( pthread_create( &pClient->CurrentTransfer.TransferThreadID,
-                                    &pFtpServer->m_pattrTransfer, ListThread, pClient ) != 0 ) {
+                                   &pFtpServer->m_pattrTransfer, ListThread, pClient ) != 0 ) {
 #endif
                     pClient->ResetDataConnection();
                     pFtpServer->OnServerEventCb( THREAD_ERROR );
@@ -1213,8 +1212,8 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
                 struct tm *t;
                 if( pszPath && !stat( pszPath, &st ) && (t = gmtime((time_t *) &(st.st_mtime))) ) {
                     pClient->SendReply2( "213 %04d%02d%02d%02d%02d%02d",
-                                         t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-                                         t->tm_hour, t->tm_min, t->tm_sec );
+                                        t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                                        t->tm_hour, t->tm_min, t->tm_sec );
                 } else
                     pClient->SendReply( "550 No such file or directory." );
             } else
@@ -1279,12 +1278,12 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 
 #ifdef WIN32
                     pClient->CurrentTransfer.hTransferThread =
-                            (HANDLE) _beginthreadex( nullptr, 0, RetrieveThread, pClient,
-                                                     0, &pClient->CurrentTransfer.uTransferThreadID );
+                        (HANDLE) _beginthreadex( nullptr, 0, RetrieveThread, pClient,
+                                                0, &pClient->CurrentTransfer.uTransferThreadID );
                     if( pClient->CurrentTransfer.hTransferThread == 0 ) {
 #else
                     if( pthread_create( &pClient->CurrentTransfer.TransferThreadID,
-                                        &pFtpServer->m_pattrTransfer, RetrieveThread, pClient ) != 0 ) {
+                                       &pFtpServer->m_pattrTransfer, RetrieveThread, pClient ) != 0 ) {
 #endif
                         pClient->ResetDataConnection();
                         pFtpServer->OnServerEventCb( THREAD_ERROR );
@@ -1337,12 +1336,12 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
 
 #ifdef WIN32
                     pClient->CurrentTransfer.hTransferThread =
-                            (HANDLE) _beginthreadex( nullptr, 0, StoreThread, pClient,
-                                                     0, &pClient->CurrentTransfer.uTransferThreadID );
+                        (HANDLE) _beginthreadex( nullptr, 0, StoreThread, pClient,
+                                                0, &pClient->CurrentTransfer.uTransferThreadID );
                     if( pClient->CurrentTransfer.hTransferThread == 0 ) {
 #else
                     if( pthread_create( &pClient->CurrentTransfer.TransferThreadID,
-                                        &pFtpServer->m_pattrTransfer, StoreThread, pClient ) != 0 ) {
+                                       &pFtpServer->m_pattrTransfer, StoreThread, pClient ) != 0 ) {
 #endif
                         pClient->ResetDataConnection();
                         pFtpServer->OnServerEventCb( THREAD_ERROR );
@@ -1357,16 +1356,16 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
                 pszPath = pClient->BuildPath( pszCmdArg );
                 if( pszPath && stat( pszPath, &st ) == 0 && S_ISREG( st.st_mode ) ) {
                     pClient->SendReply2(
-            #ifdef __USE_FILE_OFFSET64
-            #ifdef WIN32
-                                "213 %I64i",
-            #else
-                                "213 %llu",
-            #endif
-            #else
-                                "213 %li",
-            #endif
-                                st.st_size );
+#ifdef __USE_FILE_OFFSET64
+#ifdef WIN32
+                        "213 %I64i",
+#else
+                        "213 %llu",
+#endif
+#else
+                        "213 %li",
+#endif
+                        st.st_size );
                 } else
                     pClient->SendReply( "550 No such file." );
             } else
@@ -1475,7 +1474,6 @@ void *CFtpServer::CClientEntry::Shell( void *pvParam )
             pClient->SendReply( "500 Command not understood." );
             continue;
         }
-
     }
     if( pszPath ) delete [] pszPath;
 
@@ -1655,8 +1653,8 @@ bool CFtpServer::CClientEntry::ReceiveLine()
         if( !FD_ISSET( CtrlSock, &fdRead ) ) {
             dt = difftime( time( nullptr ), tTimeoutTime );
             if( ( !IsLogged() && pFtpServer->GetNoLoginTimeout() )
-                    || ( eStatus == WAITING && pFtpServer->GetNoTransferTimeout()
-                         && dt >= pFtpServer->GetNoTransferTimeout() ) )
+                || ( eStatus == WAITING && pFtpServer->GetNoTransferTimeout()
+                    && dt >= pFtpServer->GetNoTransferTimeout() ) )
             {
                 SendReply( "421 Timeout: closing control connection." );
                 pFtpServer->OnClientEventCb( IsLogged() ? NO_TRANSFER_TIMEOUT : NO_LOGIN_TIMEOUT, this );
@@ -1689,7 +1687,7 @@ int CFtpServer::CClientEntry::ParseLine()
         pszCmdArg = pszSpace + 1;
     } else pszCmdArg = nullptr;
 
-    // Convert the Cmd to uppercase
+        // Convert the Cmd to uppercase
 #ifdef WIN32
     _strupr( sCmdBuffer );
 #else
@@ -1909,7 +1907,7 @@ bool CFtpServer::CClientEntry::OpenDataConnection( int nCmd )
     int iBufSize = pFtpServer->GetTransferSocketBufferSize();
 
     if( DataSock != INVALID_SOCKET && !setsockopt( DataSock, SOL_SOCKET,
-                                                   ( nCmd == CMD_STOR ) ? SO_RCVBUF : SO_SNDBUF, (char*)&iBufSize, sizeof(int) ) )
+                                                  ( nCmd == CMD_STOR ) ? SO_RCVBUF : SO_SNDBUF, (char*)&iBufSize, sizeof(int) ) )
     {
 
         if( eDataConnection == PASV ) {
@@ -2117,7 +2115,7 @@ void* CFtpServer::CClientEntry::StoreThread( void *pvParam )
 
     if( hFile >= 0 ) {
         if( (pTransfer->RestartAt > 0 && lseek( hFile, pTransfer->RestartAt, SEEK_SET) != -1 )
-                || pTransfer->RestartAt == 0 )
+            || pTransfer->RestartAt == 0 )
         {
             fd_set fdRead;
             char *ps = pBuffer;
@@ -2129,7 +2127,7 @@ void* CFtpServer::CClientEntry::StoreThread( void *pvParam )
                 FD_SET( pClient->DataSock, &fdRead );
 
                 if( select( pClient->DataSock + 1, &fdRead, nullptr, nullptr, nullptr ) > 0
-                        && FD_ISSET( pClient->DataSock, &fdRead ) )
+                    && FD_ISSET( pClient->DataSock, &fdRead ) )
                 {
                     len = recv( pClient->DataSock, ps, (pe - ps), 0 );
                     if( len >= 0 ) {
@@ -2160,18 +2158,18 @@ void* CFtpServer::CClientEntry::StoreThread( void *pvParam )
                         } else
 #endif
                             if( len > 0 ) {
-                                ps += len;
-                                if( ps == pe ) {
-                                    if( !pClient->SafeWrite( hFile, pBuffer, ps - pBuffer ) ) {
-                                        len = -1;
-                                        break;
-                                    }
-                                    ps = pBuffer;
+                            ps += len;
+                            if( ps == pe ) {
+                                if( !pClient->SafeWrite( hFile, pBuffer, ps - pBuffer ) ) {
+                                    len = -1;
+                                    break;
                                 }
-                            } else {
-                                pClient->SafeWrite( hFile, pBuffer, ps - pBuffer );
-                                break;
+                                ps = pBuffer;
                             }
+                        } else {
+                            pClient->SafeWrite( hFile, pBuffer, ps - pBuffer );
+                            break;
+                        }
                     } else
                         break; // Socket Error
 
@@ -2258,7 +2256,7 @@ void* CFtpServer::CClientEntry::RetrieveThread( void *pvParam )
     hFile = open( pTransfer->szPath, O_RDONLY | O_BINARY );
     if( hFile != -1 ) {
         if( pTransfer->RestartAt == 0
-                || ( pTransfer->RestartAt > 0 && lseek( hFile, pTransfer->RestartAt, SEEK_SET ) != -1 ) )
+            || ( pTransfer->RestartAt > 0 && lseek( hFile, pTransfer->RestartAt, SEEK_SET ) != -1 ) )
         {
             while( pClient->DataSock != INVALID_SOCKET
                    && (BlockSize = read( hFile, pBuffer, uiBufferSize )) > 0
@@ -2329,12 +2327,12 @@ endofretrieve:
 
 // !!!  psLine must be at least CFTPSERVER_LIST_MAX_LINE_LEN (=MAX_PATH+57) char long.
 int CFtpServer::CClientEntry::GetFileListLine( char* psLine, unsigned short mode,
-                                               #ifdef __USE_FILE_OFFSET64
-                                               __int64 size,
-                                               #else
-                                               long size,
-                                               #endif
-                                               time_t mtime, const char* pszName, bool opt_F )
+#ifdef __USE_FILE_OFFSET64
+                                              __int64 size,
+#else
+                                              long size,
+#endif
+                                              time_t mtime, const char* pszName, bool opt_F )
 {
 
     if( !psLine || !pszName )
@@ -2343,18 +2341,18 @@ int CFtpServer::CClientEntry::GetFileListLine( char* psLine, unsigned short mode
     char szYearOrHour[ 6 ] = "";
 
     static const char *pszMonth[] =
-    { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
     static const char szListFile[] = "%c%c%c%c%c%c%c%c%c%c 1 user group %14"
-        #ifdef __USE_FILE_OFFSET64
-        #ifdef WIN32
+#ifdef __USE_FILE_OFFSET64
+#ifdef WIN32
                                      "I64"
-        #else
+#else
                                      "ll"
-        #endif
-        #else
+#endif
+#else
                                      "l"
-        #endif
+#endif
                                      "i %s %2d %s %s%s\r\n";
 
     struct tm *t = gmtime( (time_t *) &mtime ); // UTC Time
@@ -2364,22 +2362,22 @@ int CFtpServer::CClientEntry::GetFileListLine( char* psLine, unsigned short mode
         sprintf( szYearOrHour, "%02d:%02d", t->tm_hour, t->tm_min );
 
     int iLineLen = sprintf( psLine, szListFile,
-                            ( S_ISDIR( mode ) ) ? 'd' : '-',
-                            ( mode & S_IREAD ) == S_IREAD ? 'r' : '-',
-                            ( mode & S_IWRITE ) == S_IWRITE ? 'w' : '-',
-                            ( mode & S_IEXEC ) == S_IEXEC ? 'x' : '-',
-                            '-', '-', '-', '-', '-', '-',
-                            size,
-                            pszMonth[ t->tm_mon ], t->tm_mday, szYearOrHour,
-            pszName,
-            ( opt_F && S_ISDIR( mode ) ? "/" : "" ) );
+                           ( S_ISDIR( mode ) ) ? 'd' : '-',
+                           ( mode & S_IREAD ) == S_IREAD ? 'r' : '-',
+                           ( mode & S_IWRITE ) == S_IWRITE ? 'w' : '-',
+                           ( mode & S_IEXEC ) == S_IEXEC ? 'x' : '-',
+                           '-', '-', '-', '-', '-', '-',
+                           size,
+                           pszMonth[ t->tm_mon ], t->tm_mday, szYearOrHour,
+                           pszName,
+                           ( opt_F && S_ISDIR( mode ) ? "/" : "" ) );
 
     return iLineLen;
 }
 
 bool CFtpServer::CClientEntry::AddToListBuffer( DataTransfer_t *pTransfer,
-                                                char *pszListLine, int nLineLen,
-                                                char *pBuffer, unsigned int *nBufferPos, unsigned int uiBufferSize )
+                                               char *pszListLine, int nLineLen,
+                                               char *pBuffer, unsigned int *nBufferPos, unsigned int uiBufferSize )
 {
 
 #ifdef CFTPSERVER_ENABLE_ZLIB
@@ -2423,13 +2421,9 @@ bool CFtpServer::CClientEntry::AddToListBuffer( DataTransfer_t *pTransfer,
         } else { // Flush the buffer.
             if( nBufferPos )
             {
-                QString str = QString(pBuffer);
-                str.resize(*nBufferPos);
-                qDebug()  << __FILE__ << __LINE__ << '\n'<< str;
-                qDebug()  << __FILE__ << __LINE__ << *nBufferPos;
-                send( pTransfer->SockList, pBuffer, *nBufferPos, MSG_NOSIGNAL );
-            }
 
+                send(pTransfer->SockList, pBuffer, *nBufferPos, MSG_NOSIGNAL );
+            }
         }
     }
     return true;
@@ -2455,7 +2449,7 @@ void* CFtpServer::CClientEntry::ListThread( void *pvParam )
 
             char *pszName = strrchr( pTransfer->szPath, '/' );
             iFileLineLen = pClient->GetFileListLine( psFileLine, st->st_mode, st->st_size,
-                                                     st->st_mtime, (( pszName && pszName[ 1 ] ) ? pszName + 1 : "."), pTransfer->opt_F );
+                                                    st->st_mtime, (( pszName && pszName[ 1 ] ) ? pszName + 1 : "."), pTransfer->opt_F );
 
             if( iFileLineLen > 0 )
             {
@@ -2486,34 +2480,43 @@ void* CFtpServer::CClientEntry::ListThread( void *pvParam )
             }
 #endif
             if( fi->FindFirst( pTransfer->szPath ) ) {
+
                 do
                 {
-                    if( pClient->CurrentTransfer.nCmd ==  CMD_NLST ) {
+                    //bign
 
-                        if( fi->pszName[0] != '.' || pTransfer->opt_a ) {
-                            if( !pClient->AddToListBuffer( pTransfer, fi->pszName, (int)strlen( fi->pszName ), pBuffer, &nBufferPos, uiBufferSize ) )
+                    if( pClient->CurrentTransfer.nCmd == CMD_NLST ) {
+//                        if( fi->pszName[0] != '.' || pTransfer->opt_a ) {
+                    qDebug() << __FILE__ << __LINE__ << QString(fi->pszName);
+                            if( !pClient->AddToListBuffer(pTransfer, fi->pszName, (int)strlen( fi->pszName ), pBuffer, &nBufferPos, uiBufferSize ) )
                                 break;
-                        }
-
-                    } else if( fi->pszName[0] != '.' || pTransfer->opt_a ) {
-
-                        iFileLineLen = pClient->GetFileListLine( psFileLine, fi->mode,
-                                                                 fi->size, fi->mtime, fi->pszName, pTransfer->opt_F );
-
-                        if( !pClient->AddToListBuffer( pTransfer, psFileLine, iFileLineLen, pBuffer, &nBufferPos, uiBufferSize ) )
-                            break;
+//                        }
 
                     }
-
+                    else
+                    {
+                        iFileLineLen = pClient->GetFileListLine(psFileLine, fi->mode,fi->size, fi->mtime, fi->pszName, pTransfer->opt_F );
+                        if( !pClient->AddToListBuffer(pTransfer, psFileLine, iFileLineLen, pBuffer, &nBufferPos, uiBufferSize ) )
+                            break;
+                    }
+//                        if( pClient->CurrentTransfer.nCmd ==  CMD_NLST ) {
+//                            if( fi->pszName[0] != '.' || pTransfer->opt_a ) {
+//                                if( !pClient->AddToListBuffer(pTransfer, fi->pszName, (int)strlen( fi->pszName ), pBuffer, &nBufferPos, uiBufferSize ) )
+//                                    break;
+//                            }
+//                        } else if( fi->pszName[0] != '.' || pTransfer->opt_a ) {
+//                            iFileLineLen = pClient->GetFileListLine( psFileLine, fi->mode,
+//                                                                    fi->size, fi->mtime, fi->pszName, pTransfer->opt_F );
+//                            if( !pClient->AddToListBuffer( pTransfer, psFileLine, iFileLineLen, pBuffer, &nBufferPos, uiBufferSize ) )
+//                                break;
+//                        }
+                     //end
                 } while( fi->FindNext() );
                 fi->FindClose();
-
                 // Flush the buffer
                 pClient->AddToListBuffer( pTransfer, nullptr, 0, pBuffer, &nBufferPos, uiBufferSize );
-
             } // else Directory doesn't exist anymore..
-
-endoflist:
+        endoflist:
             if( fi ) delete fi;
             if( pBuffer ) delete [] pBuffer;
 #ifdef CFTPSERVER_ENABLE_ZLIB
@@ -2595,10 +2598,10 @@ bool CFtpServer::CEnumFileInfo::FindNext()
         if( iDirPathLen + iFileNameLen >= MAX_PATH )
             return false;
         sprintf( szFullPath, "%s%s%s", szDirPath,
-                 ( szDirPath[ iDirPathLen - 1 ] == '/' ) ? "" : "/",
+                ( szDirPath[ iDirPathLen - 1 ] == '/' ) ? "" : "/",
                 c_file.name );
         pszName = szFullPath + iDirPathLen +
-                ( ( szDirPath[ iDirPathLen - 1 ] != '/' ) ? 1 : 0 );
+                  ( ( szDirPath[ iDirPathLen - 1 ] != '/' ) ? 1 : 0 );
 
         size = c_file.size;
         mode = S_IEXEC | S_IREAD;
@@ -2610,7 +2613,7 @@ bool CFtpServer::CEnumFileInfo::FindNext()
 #else
     struct dirent *dir_entry_result = nullptr;
     if( readdir_r( dp, &dir_entry, &dir_entry_result ) == 0
-            && dir_entry_result != nullptr )
+        && dir_entry_result != nullptr )
     {
         int iDirPathLen = strlen( szDirPath );
         int iFileNameLen = strlen( dir_entry.d_name );
@@ -2618,10 +2621,10 @@ bool CFtpServer::CEnumFileInfo::FindNext()
             return false;
 
         sprintf( szFullPath, "%s%s%s", szDirPath,
-                 ( szDirPath[ iDirPathLen - 1 ] == '/' ) ? "" : "/",
+                ( szDirPath[ iDirPathLen - 1 ] == '/' ) ? "" : "/",
                 dir_entry.d_name );
         pszName = szFullPath + strlen( szDirPath ) +
-                ( ( szDirPath[ iDirPathLen - 1 ] != '/' ) ? 1 : 0 );
+                  ( ( szDirPath[ iDirPathLen - 1 ] != '/' ) ? 1 : 0 );
 
         if( stat( szFullPath, &st ) == 0 ) {
             size = st.st_size;

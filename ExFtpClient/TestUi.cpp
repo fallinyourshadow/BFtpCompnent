@@ -33,7 +33,6 @@ TestUi::TestUi(QWidget *parent)
 {
     ui->setupUi(this);
     ui->progressBar->reset();
-
     ui->progressBar->setValue(100);
     m_pModel = new QStandardItemModel(this);
     ui->treeView->setModel(m_pModel);
@@ -148,7 +147,8 @@ void TestUi::on_getListDone(bool error, const QString &errMsg)
         foreach(QUrlInfo v, infos)
         {
             QString name = v.name();
-            qDebug() << "dasdasdasd"<< name;
+            if(name == "." || name == "..")//跳过. 和 ..目录
+                continue;
             m_pModel->setItem(i,0,new QStandardItem(name));
             m_pModel->setItem(i,1,new QStandardItem(v.lastModified().toString()));
             if(v.isDir())
@@ -158,14 +158,14 @@ void TestUi::on_getListDone(bool error, const QString &errMsg)
             else
             {
                 QStringList list;
-                list = v.name().split('.');
-                if(list.size() > 1)
+                list = name.split('.');
+                if(list.size() > 1 && name.at(0) != '.')
                 {
                     m_pModel->setItem(i,2,new QStandardItem(list.last()));
                 }
                 else
                 {
-                    m_pModel->setItem(i,2,new QStandardItem(QString::fromLocal8Bit( "未知")));
+                    m_pModel->setItem(i,2,new QStandardItem("未知"));
                 }
             }
             m_pModel->setItem(i,3,new QStandardItem(QString("%1").arg(v.permissions())));
