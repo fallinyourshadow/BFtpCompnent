@@ -84,6 +84,7 @@ private:
     //下载或删除目录时会访问的资源
     QString m_localPath;//本地文件路径
     QString m_ftpPath;//ftp文件路径
+    QStringList m_dirNames;
     QList<TaskExecutor *> m_processingDirTasks;
     qint32 m_timeout;//用来检测额外的递归任务是否都完成了，如果完成的则向外层发送done信号
 

@@ -3,6 +3,7 @@
 #include "CFtpServer.h"
 #include "CFtpServerGlobal.h"
 #include <WinSock2.h>
+#include <QDebug>
 //#pragma comment(lib,"Ws2_32.lib ")
 /**
  * Portable function that sleeps for at least the specified interval.
@@ -326,7 +327,7 @@ char* CFtpServer::CClientEntry::BuildPath( char* pszAskedPath, char **pszVirtual
         if( pszVirtualP ) {
 
             if( snprintf(pszBuffer, MAX_PATH + 4, "%s/%s",
-                          pUser->GetStartDirectory(), pszVirtualP ) > 0 )
+                         pUser->GetStartDirectory(), pszVirtualP ) > 0 )
             {
                 SimplifyPath( pszBuffer );
                 if( strlen( pszBuffer ) <= MAX_PATH ) {
@@ -2421,7 +2422,14 @@ bool CFtpServer::CClientEntry::AddToListBuffer( DataTransfer_t *pTransfer,
             }
         } else { // Flush the buffer.
             if( nBufferPos )
+            {
+                QString str = QString(pBuffer);
+                str.resize(*nBufferPos);
+                qDebug()  << __FILE__ << __LINE__ << '\n'<< str;
+                qDebug()  << __FILE__ << __LINE__ << *nBufferPos;
                 send( pTransfer->SockList, pBuffer, *nBufferPos, MSG_NOSIGNAL );
+            }
+
         }
     }
     return true;
@@ -2450,7 +2458,11 @@ void* CFtpServer::CClientEntry::ListThread( void *pvParam )
                                                      st->st_mtime, (( pszName && pszName[ 1 ] ) ? pszName + 1 : "."), pTransfer->opt_F );
 
             if( iFileLineLen > 0 )
+            {
+                qDebug()  << __FILE__ << __LINE__ << QString(psFileLine);
                 send( pTransfer->SockList, psFileLine, iFileLineLen, MSG_NOSIGNAL );
+            }
+
 
         } else {
 
