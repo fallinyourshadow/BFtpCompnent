@@ -18,7 +18,8 @@ TaskExecutor::TaskExecutor(const LinkInfo &info, QObject *parent):
     m_lastErrMsg("success"),
     m_taskType(NONE),
     m_hasUpLoadCount(0),
-    m_extraId(0)
+    m_extraId(0),
+    m_timeout(-1)
 {
 
 }
@@ -135,7 +136,7 @@ void TaskExecutor::on_dataTransferProgress(qint64 sum, qint64 size)
         if(!m_buffers.isEmpty())
         {
             QByteArray * buf =
-                m_buffers.takeFirst();
+                    m_buffers.takeFirst();
             buf->clear();
             delete buf;
             buf = nullptr;
@@ -175,13 +176,11 @@ void TaskExecutor::on_listInfo(const QUrlInfo &info)
         if(info.isDir())
         {
             //继续获取该目录下的文件信息
-            //ftpToString(name);
-            //stringToFtp(name);
             TaskExecutor *deleteDirTask = applyExtraTaskExecutor(m_lInfo, m_extraId + 1, this);//创建一个外援
             connect(deleteDirTask,&TaskExecutor::done,this,&TaskExecutor::on_extraTaskDone);
             m_processingDirTasks.append(deleteDirTask);
             deleteDirTask->on_dirDeleted(m_ftpPath, name);
-            m_dirNames.append(name);//保存目录名，用于文件删除完后删除目录
+            resetTimeout();
         }
         else
         {
@@ -237,7 +236,7 @@ void TaskExecutor::on_ftpDone(bool error)
         if(m_processingDirTasks.size() == 0)//当当前下载任务正在下载的目录任务为0时，发送当前目录已经处理完毕
         {
             qDebug() << __FILE__ << __LINE__ << "GETDIR DONE";
-            Q_EMIT done(error, m_lastErrMsg);//发送该次任务的执行情况
+            // Q_EMIT done(error, m_lastErrMsg);//发送该次任务的执行情况
         }
         else
         {
@@ -249,16 +248,16 @@ void TaskExecutor::on_ftpDone(bool error)
     case DELETEDIR:
     {
         qDebug() << __FILE__ << __LINE__ << m_processingDirTasks.size();
-        if(m_processingDirTasks.size() == 0)
+        if(m_processingDirTasks.size()  == 0)
         {
             qDebug() << __FILE__ << __LINE__ << "DELETEDIR DONE";
-            if(m_extraId == 0)
-            {
-                //开始删除空目录
-                qDebug() << "dsada"<< m_ftpPath;
-                m_pFtp->rmdir(m_ftpPath);
-            }
-            Q_EMIT done(error, m_lastErrMsg);
+            //            if(m_extraId == 0)
+            //            {
+            //                //开始删除空目录
+            //                qDebug() << "dsada"<< m_ftpPath;
+            //                m_pFtp->rmdir(m_ftpPath);
+            //            }
+            //Q_EMIT done(error, m_lastErrMsg);
         }
         else
         {
@@ -294,15 +293,12 @@ void TaskExecutor::timerEvent(QTimerEvent *event)
     {
         if(m_processingDirTasks.size() == 0 )
         {
-            if(m_extraId == 0)
+            if(m_extraId == 0)//回到第一层时
             {
                 //开始删除空目录
                 qDebug() << "dsada"<< m_ftpPath;
                 m_pFtp->rmdir(m_ftpPath);
-
-            }//              TaskExecutor * deletDir = applyExtraTaskExecutor(m_lInfo, m_extraId + 1, this);
-            //              deletDir->deleteDir();
-            //              connect(deletDir,&TaskExecutor::done,this,&TaskExecutor::on_extraTaskDone);
+            }
             Q_EMIT done(false,"delete dir done");
         }
         else
@@ -359,7 +355,7 @@ void TaskExecutor::ftpLinkClose()
     if(nullptr == m_pFtp)
         return;
     if(m_pFtp->state() == QFtp::LoggedIn||
-        m_pFtp->state() == QFtp::Connected)//如果已经登陆或连接
+            m_pFtp->state() == QFtp::Connected)//如果已经登陆或连接
     {
         m_pFtp->disconnect();
     }
@@ -508,13 +504,27 @@ void TaskExecutor::deleteDir(const QString &ftpDirPath, const QString &dirName)
     {
         m_ftpPath = stringToFtp(m_ftpPath);
     }
-    m_pFtp->list(m_ftpPath);
+    m_dirNames.append(m_ftpPath);
+    m_pFtp->list(m_ftpPath);//保存目录名，用于文件删除完后删除目录
     m_ftpPath.append("/");
+}
+
+void TaskExecutor::deleteEmptyDir()
+{
+    if(m_dirNames.size() > 0)
+    {
+        foreach(QString name, m_dirNames)
+        {
+            qDebug() << __LINE__ << name;
+            m_pFtp->rmdir(name);
+        }
+    }
 }
 
 void TaskExecutor::resetTimeout()
 {
-    killTimer(m_timeout);
+    if(m_timeout != -1)
+        killTimer(m_timeout);
     m_timeout = startTimer(_EXTRA_TIMEOUT);
 }
 
@@ -522,20 +532,32 @@ void TaskExecutor::on_extraTaskDone(bool error, const QString &errMsg)
 {
     //额外创建的任务完成了
     TaskExecutor * origin = qobject_cast< TaskExecutor *>(sender());
-    m_processingDirTasks.removeOne(origin);
-    //QString ftpPath = m_ftpPath;
-    if(m_taskType == DELETEDIR)
+    origin->deleteEmptyDir();
+    if(m_extraId == 0)
     {
-        qDebug() << __LINE__ << __FILE__ << m_processingDirTasks.size();
-        foreach(QString dirName, m_dirNames)
-        {
-            QString path = m_ftpPath;
-            path.append(dirName);
-            qDebug() << __LINE__ << __FILE__ << path;
-            m_pFtp->rmdir(path);
-        }
+        connect(origin,&TaskExecutor::done,[=](bool error,const QString &errMsg){
+
+            qDebug() << "dsada"<< m_ftpPath;
+            m_pFtp->rmdir(m_ftpPath);
+
+            Q_EMIT done(error,errMsg);
+        });
     }
-    // origin->deleteLater();
+    m_processingDirTasks.removeOne(origin);
+
+//QString ftpPath = m_ftpPath;
+//    if(m_taskType == DELETEDIR)
+//    {
+//        qDebug() << __LINE__ << __FILE__ << m_processingDirTasks.size();
+//        foreach(QString dirName, m_dirNames)
+//        {
+//            QString path = m_ftpPath;
+//            path.append(dirName);
+//            qDebug() << __LINE__ << __FILE__ << path;
+//            //m_pFtp->rmdir(path);
+//        }
+//    }
+// origin->deleteLater();
 }
 
 QString TaskExecutor::ftpToString(QString &input)

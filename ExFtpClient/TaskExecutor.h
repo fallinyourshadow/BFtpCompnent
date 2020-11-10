@@ -7,7 +7,7 @@
 #include <QTimerEvent>
 #include "defines.h"
 
-#define  _EXTRA_TIMEOUT 100
+#define  _EXTRA_TIMEOUT 1
 
 
 class TaskExecutor: public QObject
@@ -41,7 +41,7 @@ signals:
     void done(bool error,const QString & errMsg);//任务完成了,因为TaskLink不会马上释放所以采用引用传参
 protected:
     explicit TaskExecutor(const LinkInfo &info, quint32 id, QObject *parent = nullptr);
-    //申请外援(创建一个同类对象,用于递归调用,其隶属于同一个任务线程,用id来标识唯一性,这样就可以获得递归的顺序)
+    //申请外援(创建一个同类对象,用于递归调用,其隶属于同一个任务线程,用id来标识唯一性,这样就可以获得递归的层次)
     void timerEvent(QTimerEvent *event) override;
     TaskExecutor * applyExtraTaskExecutor(const LinkInfo &info, quint32 id, QObject *parent = nullptr);
 protected slots:
@@ -58,6 +58,7 @@ private:
     void deletFile(const QString &ftpFilePath);
     void deleteFiles(const QStringList &ftpFilePaths);
     void deleteDir(const QString &ftpDirPath,const QString &dirName);
+    void deleteEmptyDir();
     void resetTimeout();
     LinkInfo m_lInfo;
     QFtp * m_pFtp;
@@ -74,7 +75,7 @@ private:
     QString m_localPath;//本地文件路径
     QString m_ftpPath;//ftp文件路径
     QStringList m_dirNames;
-    QStringList m_fileCount;
+   // QStringList m_fileCount;
     QList<TaskExecutor *> m_processingDirTasks;
     quint32 m_extraId;//额外的任务id
     qint32 m_timeout;//用来检测额外的递归任务是否都完成了，如果完成的则向外层发送done信号
